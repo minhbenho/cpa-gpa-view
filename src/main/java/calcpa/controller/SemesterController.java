@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.util.*;
+import java.util.prefs.Preferences;
 
 public class SemesterController {
 
@@ -26,6 +27,10 @@ public class SemesterController {
 
     private Map<String, List<Course>> groupedCourses = new LinkedHashMap<>();
     private final ObservableList<Course> courseList = FXCollections.observableArrayList();
+    
+    // Preferences để lưu trữ kỳ được chọn cuối cùng
+    private static final Preferences preferences = Preferences.userNodeForPackage(SemesterController.class);
+    private static final String SELECTED_SEMESTER_KEY = "selectedSemester";
 
     @FXML
     public void initialize() {
@@ -41,10 +46,23 @@ public class SemesterController {
         initData();
         initSemesterCombo();
 
-        // Giữ lại kỳ đang chọn nếu còn tồn tại
+        // Lấy kỳ được chọn lần trước từ Preferences
+        String savedSemester = preferences.get(SELECTED_SEMESTER_KEY, null);
         String current = semesterCombo.getValue();
-        if (current != null && groupedCourses.containsKey(current)) {
-            semesterCombo.setValue(current);
+        
+        // Ưu tiên: kỳ được lưu > kỳ hiện tại > không có
+        String toSelect = null;
+        if (savedSemester != null && groupedCourses.containsKey(savedSemester)) {
+            toSelect = savedSemester;
+        } else if (current != null && groupedCourses.containsKey(current)) {
+            toSelect = current;
+        } else if (!groupedCourses.isEmpty()) {
+            // Chọn kỳ đầu tiên nếu có
+            toSelect = groupedCourses.keySet().iterator().next();
+        }
+        
+        if (toSelect != null) {
+            semesterCombo.setValue(toSelect);
             onSemesterSelected();
         } else {
             courseList.clear();
@@ -240,6 +258,9 @@ public class SemesterController {
             cpaLabel.setText("CPA: ");
             return;
         }
+
+        // Lưu kỳ được chọn vào Preferences
+        preferences.put(SELECTED_SEMESTER_KEY, selectedSemester);
 
         // Hiển thị danh sách môn học của kỳ được chọn
         List<Course> courses = groupedCourses.get(selectedSemester);
