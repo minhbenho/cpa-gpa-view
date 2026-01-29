@@ -390,4 +390,12 @@ public class SemesterController {
         alert.setContentText("Chức năng sẽ được update sau");
         alert.showAndWait();
     }
+    @FXML
+    private void onAddCourse() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Thông báo");
+        alert.setHeaderText(null);
+        alert.setContentText("Chức năng sẽ được update sau");
+        alert.showAndWait();
+    }
 }

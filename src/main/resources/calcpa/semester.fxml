@@ -1,83 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="calcpa.controller.SemesterController">
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.SemesterController">
 
     <!-- ================= TOP BAR ================= -->
     <top>
-        <HBox spacing="10"
-              alignment="CENTER_LEFT"
-              BorderPane.alignment="CENTER">
+        <HBox alignment="CENTER_LEFT" spacing="10" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
+                <Insets bottom="10" left="10" right="10" top="10" />
             </padding>
 
-        <Label text="Kỳ học:" style="-fx-font-weight: bold;"/>
-            <ComboBox fx:id="semesterCombo"
-                      prefWidth="200"
-                      promptText="Chọn kỳ"/>
+        <Label style="-fx-font-weight: bold;" text="Kỳ học:" />
+            <ComboBox fx:id="semesterCombo" prefWidth="200" promptText="Chọn kỳ" />
 
-            <Pane HBox.hgrow="ALWAYS"/>
+            <Pane HBox.hgrow="ALWAYS">
+            <children>
+                 <VBox prefWidth="160" spacing="12" style="-fx-background-color: #f5f5f5;">
+                     <padding>
+                         <Insets bottom="12" left="12" right="12" top="12" />
+                     </padding>
+         
+                     <Button maxWidth="Infinity" onAction="#onAddSemester" text="Thêm kỳ mới" />
+         
+                 </VBox>
+            </children></Pane>
 
             <!-- Chỉ hiện sau khi chọn kỳ -->
-            <Button fx:id="btnAddCourse"
-                    text="+ Thêm môn"
-                    visible="false"/>
+            <Button fx:id="btnAddCourse" onAction="#onAddCourse" text="+ Thêm môn" visible="false" />
         </HBox>
     </top>
-
-    <!-- ================= LEFT SIDEBAR ================= -->
-    <left>
-        <VBox spacing="12"
-              prefWidth="160"
-              style="-fx-background-color: #f5f5f5;"
-              BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="12" right="12" bottom="12" left="12"/>
-            </padding>
-
-            <Button text="Thêm kỳ mới"
-                    maxWidth="Infinity"
-                    onAction="#onAddSemester"/>
-
-        </VBox>
-    </left>
 
     <!-- ================= CENTER TABLE ================= -->
     <center>
         <VBox spacing="5">
             <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
+                <Insets bottom="10" left="10" right="10" top="10" />
             </padding>
 
-        <TableView fx:id="courseTable"
-                       editable="true">
+        <TableView fx:id="courseTable" editable="true">
 
                 <columns>
-                    <TableColumn fx:id="colCode"
-                                 text="Mã môn"
-                                 prefWidth="120"/>
+                    <TableColumn fx:id="colCode" prefWidth="120" text="Mã môn" />
 
-                    <TableColumn fx:id="colName"
-                                 text="Tên môn"
-                                 prefWidth="220"/>
+                    <TableColumn fx:id="colName" prefWidth="220" text="Tên môn" />
 
-                    <TableColumn fx:id="colCredits"
-                                 text="Số tín chỉ"
-                                 prefWidth="100"/>
+                    <TableColumn fx:id="colCredits" prefWidth="100" text="Số tín chỉ" />
 
-                    <TableColumn fx:id="colGrade"
-                                 text="Điểm"
-                                 prefWidth="80"/>
+                    <TableColumn fx:id="colGrade" prefWidth="80" text="Điểm" />
 
-                    <TableColumn fx:id="colAction"
-                                 text=""
-                                 prefWidth="60"/>
+                    <TableColumn fx:id="colAction" prefWidth="60" text="" />
                 </columns>
             </TableView>
 
@@ -86,21 +67,14 @@
 
     <!-- ================= BOTTOM GPA / CPA ================= -->
     <bottom>
-        <HBox spacing="40"
-              alignment="CENTER_LEFT"
-              style="-fx-background-color: #eeeeee;"
-              BorderPane.alignment="CENTER">
+        <HBox alignment="CENTER_LEFT" spacing="40" style="-fx-background-color: #eeeeee;" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="12" right="12" bottom="12" left="12"/>
+                <Insets bottom="12" left="12" right="12" top="12" />
             </padding>
 
-        <Label fx:id="gpaLabel"
-                   text="GPA: "
-                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+        <Label fx:id="gpaLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="GPA: " />
 
-            <Label fx:id="cpaLabel"
-                   text="CPA: "
-                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Label fx:id="cpaLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="CPA: " />
 
         </HBox>
     </bottom>
