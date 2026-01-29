@@ -6,6 +6,9 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,11 +18,25 @@ public class ExcelReader {
         List<Course> courses = new ArrayList<>();
 
         try {
-            InputStream is = ExcelReader.class
-                    .getResourceAsStream("/data.csv");
+            InputStream is = null;
+
+            // ƯU TIÊN: đọc file data.csv ngoài (cùng thư mục chạy app)
+            Path external = Paths.get("data.csv");
+            if (Files.exists(external)) {
+                is = Files.newInputStream(external);
+            } else {
+                // THỨ HAI: thử src/main/resources/data.csv (khi chạy từ IDE)
+                Path devPath = Paths.get("src/main/resources/data.csv");
+                if (Files.exists(devPath)) {
+                    is = Files.newInputStream(devPath);
+                } else {
+                    // CUỐI CÙNG: đọc từ resources đã build trong classpath
+                    is = ExcelReader.class.getResourceAsStream("/data.csv");
+                }
+            }
 
             if (is == null) {
-                throw new RuntimeException("Không tìm thấy data.csv trong resources");
+                throw new RuntimeException("Không tìm thấy data.csv (external, src/main/resources hoặc resources)");
             }
 
             BufferedReader br = new BufferedReader(
