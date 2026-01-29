@@ -74,7 +74,7 @@ public class SemesterController {
         
         // Cột Action với nút Xóa
         colAction.setCellFactory(param -> new TableCell<Course, Void>() {
-            private final Button deleteBtn = new Button("Thao tác khác");
+            private final Button deleteBtn = new Button("Xóa");
             
             {
                 deleteBtn.setOnAction(event -> {
@@ -129,7 +129,7 @@ public class SemesterController {
         }
 
         // Tính GPA của kỳ được chọn
-        List<Course> semesterCourses = groupedCourses.get(selectedSemester);
+        List<Course> semesterCourses = groupedCourses.getOrDefault(selectedSemester, List.of());
         double gpa = GpaService.calcGpa(semesterCourses);
         gpaLabel.setText(String.format("GPA: %.2f", gpa));
 
