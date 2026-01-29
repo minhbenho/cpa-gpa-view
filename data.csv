@@ -1,9 +1,8 @@
-20262,SSH1141,Lịch sử Đảng cộng sản Việt Nam,2,A
+semester,code,name,credits,grade
 20262,IT4125,Đồ án tốt nghiệp,6,A
 20262,JP2220,Tiếng Nhật 8,1,A
 20262,IT4653,Học sâu và ứng dụng,2,A
 20262,IT4930,Nhập môn Khoa học dữ liệu,2,A
-
 20261,JP2210,Tiếng Nhật 7,2,A
 20261,IT3382,Kỹ năng ITSS học bằng tiếng Nhật 2,2,A
 20261,IT5022,Nghiên cứu tốt nghiệp 2,2,A
@@ -16,10 +15,8 @@
 20261,IT4015,Nhập môn An toàn thông tin,3,A
 20261,JP3110,Tiếng Nhật chuyên ngành 1,2,A
 20261,IT2030,Technical Writing and Presentation,3,A
-
 20253,SSH1121,Kinh tế chính trị Mác - Lênin,2,A
 20253,IT4948,Thực tập công nghiệp,2,A
-
 20252,IT3103,Lập trình hướng đối tượng,3,A
 20252,IT3160,Nhập môn Trí tuệ nhân tạo,3,A
 20252,IT3292,Cơ sở dữ liệu,2,A
@@ -31,7 +28,6 @@
 20252,JP2132,Tiếng Nhật 6,2,A
 20252,JP3120,Tiếng Nhật chuyên ngành 2,2,A
 20252,MI1134,Phương trình vi phân và Chuỗi,3,A
-
 20251,IT3011,Cấu trúc dữ liệu và thuật toán,2,A
 20251,IT3070,Nguyên lý hệ điều hành,3,A
 20251,IT3080,Mạng máy tính,3,A
@@ -42,8 +38,7 @@
 20251,IT4172,Xử lý tín hiệu,2,B+
 20251,IT4593,Nhập môn kỹ thuật truyền thông,2,A
 20251,JP2126,Tiếng Nhật 5,2,D
-20251,JP3110,Tiếng Nhật chuyên ngành 1,2,C
-
+20251,JP3110,Tiếng Nhật chuyên ngành 1,2,C+
 20242,PH1110,Vật lý đại cương I,3,B
 20242,MI1134,Phương trình vi phân và Chuỗi,3,C+
 20242,JP2111,Tiếng Nhật 4,0,W
@@ -55,7 +50,6 @@
 20242,IT3103,Lập trình hướng đối tượng,3,C
 20242,EM1180,Văn hóa kinh doanh và tinh thần khởi nghiệp,2,A
 20242,EM1170,Pháp luật đại cương,2,A
-
 20241,SSH1151,Tư tưởng Hồ Chí Minh,2,A
 20241,SSH1141,Lịch sử Đảng cộng sản Việt Nam,2,C+
 20241,PE2401,Bóng bàn 1,0,D+
@@ -73,11 +67,9 @@
 20241,FL1131,Tiếng Anh cơ sở 1,0,R
 20241,ED3280,Tâm lý học ứng dụng,2,A
 20241,ED3220,Kỹ năng mềm,2,A
-
 20233,EM1170,Pháp luật đại cương,2,F
 20233,SSH1131,Chủ nghĩa xã hội khoa học,2,B
 20233,PE2501,Cầu lông 1,0,B+
-
 20232,PE1014,Lý luận TDTT,0,B
 20232,MIL1220,Công tác quốc phòng và an ninh,0,C+
 20232,EM1170,Pháp luật đại cương,2,B
@@ -87,7 +79,6 @@
 20232,JP1120,Tiếng Nhật 2,0,B
 20232,IT3220,C Programming (Introduction),2,A
 20232,IT3020,Toán rời rạc,3,A
-
 20231,SSH1111,Triết học Mác - Lênin,3,A
 20231,MIL1240,Kỹ thuật chiến đấu bộ binh và chiến thuật,0,A
 20231,MIL1230,Quân sự chung,0,C

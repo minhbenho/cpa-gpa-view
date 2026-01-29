@@ -71,7 +71,125 @@ public class SemesterController {
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colCredits.setCellValueFactory(new PropertyValueFactory<>("credits"));
         colGrade.setCellValueFactory(new PropertyValueFactory<>("grade"));
-        
+
+        // ====== EDIT CREDITS (SỐ TÍN CHỈ) BẰNG CHUỘT PHẢI ======
+        colCredits.setCellFactory(col -> new TableCell<Course, Integer>() {
+            {
+                // Context menu chuột phải
+                ContextMenu menu = new ContextMenu();
+                MenuItem editItem = new MenuItem("Sửa số tín chỉ");
+                editItem.setOnAction(e -> editCredits());
+                menu.getItems().add(editItem);
+
+                setContextMenu(menu);
+            }
+
+            private void editCredits() {
+                Course course = getCurrentCourse();
+                if (course == null) return;
+
+                String current = String.valueOf(course.getCredits());
+                TextInputDialog dialog = new TextInputDialog(current);
+                dialog.setTitle("Sửa số tín chỉ");
+                dialog.setHeaderText(null);
+                dialog.setContentText("Số tín chỉ (số tự nhiên > 0):");
+
+                dialog.showAndWait().ifPresent(text -> {
+                    String trimmed = text.trim();
+                    try {
+                        int value = Integer.parseInt(trimmed);
+                        if (value <= 0) {
+                            showError("Số tín chỉ phải là số tự nhiên > 0.");
+                            return;
+                        }
+                        course.setCredits(value);
+                        courseTable.refresh();
+                        // Lưu lại ra CSV và reload toàn app (Dashboard, Semester, ...)
+                        persistAndReload();
+                    } catch (NumberFormatException ex) {
+                        showError("Số tín chỉ phải là số nguyên hợp lệ.");
+                    }
+                });
+            }
+
+            private Course getCurrentCourse() {
+                if (getIndex() < 0 || getIndex() >= getTableView().getItems().size()) return null;
+                return getTableView().getItems().get(getIndex());
+            }
+
+            private void showError(String message) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Giá trị không hợp lệ");
+                alert.setHeaderText(null);
+                alert.setContentText(message);
+                alert.showAndWait();
+            }
+
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : String.valueOf(item));
+            }
+        });
+
+        // ====== EDIT GRADE (ĐIỂM) BẰNG CHUỘT PHẢI ======
+        colGrade.setCellFactory(col -> new TableCell<Course, String>() {
+            private final Set<String> ALLOWED =
+                    new LinkedHashSet<>(Arrays.asList("NA", "X", "R", "A+", "A",
+                            "B+", "B", "C+", "C", "D+", "D", "F"));
+
+            {
+                ContextMenu menu = new ContextMenu();
+                MenuItem editItem = new MenuItem("Sửa điểm");
+                editItem.setOnAction(e -> editGrade());
+                menu.getItems().add(editItem);
+                setContextMenu(menu);
+            }
+
+            private void editGrade() {
+                Course course = getCurrentCourse();
+                if (course == null) return;
+
+                String current = course.getGrade() == null ? "" : course.getGrade();
+                TextInputDialog dialog = new TextInputDialog(current);
+                dialog.setTitle("Sửa điểm");
+                dialog.setHeaderText("Giá trị hợp lệ: " + String.join(", ", ALLOWED));
+                dialog.setContentText("Điểm:");
+
+                dialog.showAndWait().ifPresent(text -> {
+                    String value = text.trim().toUpperCase();
+                    if (!ALLOWED.contains(value)) {
+                        showError("Điểm phải thuộc một trong các giá trị: " +
+                                String.join(", ", ALLOWED));
+                        return;
+                    }
+                    course.setGrade(value);
+                    courseTable.refresh();
+                    // Lưu lại ra CSV và reload toàn app
+                    persistAndReload();
+                });
+            }
+
+            private Course getCurrentCourse() {
+                if (getIndex() < 0 || getIndex() >= getTableView().getItems().size()) return null;
+                return getTableView().getItems().get(getIndex());
+            }
+
+            private void showError(String message) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Giá trị không hợp lệ");
+                alert.setHeaderText(null);
+                alert.setContentText(message);
+                alert.showAndWait();
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+            }
+        });
+
         // Cột Action với nút Xóa
         colAction.setCellFactory(param -> new TableCell<Course, Void>() {
             private final Button deleteBtn = new Button("Xóa");
@@ -81,7 +199,8 @@ public class SemesterController {
                     Course course = getTableView().getItems().get(getIndex());
                     CourseService.removeCourse(course);
                     courseList.remove(course);
-                    updateGpaCpa();
+                    // Lưu lại ra CSV và reload toàn app
+                    persistAndReload();
                 });
             }
             
@@ -97,6 +216,22 @@ public class SemesterController {
         });
         
         courseTable.setItems(courseList);
+    }
+
+    /**
+     * Ghi lại dữ liệu ra CSV và yêu cầu MainController reload toàn bộ app
+     * (Dashboard, Semester, ...), tránh việc người dùng phải bấm Reload tay.
+     */
+    private void persistAndReload() {
+        // Ghi ra data.csv
+        CourseService.saveData();
+        // Cập nhật lại GPA/CPA tại màn hiện tại
+        updateGpaCpa();
+        // Gọi reloadApp() ở MainController nếu có
+        MainController main = MainController.getInstance();
+        if (main != null) {
+            main.reloadApp();
+        }
     }
 
     private void onSemesterSelected() {

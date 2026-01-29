@@ -6,6 +6,17 @@ import javafx.scene.Node;
 
 public class MainController {
 
+    // Singleton đơn giản để các controller con có thể gọi reloadApp()
+    private static MainController instance;
+
+    public MainController() {
+        instance = this;
+    }
+
+    public static MainController getInstance() {
+        return instance;
+    }
+
     // Root nodes của từng trang
     @FXML private Node pageDashboard;
     @FXML private Node pageSemester;
@@ -73,7 +84,7 @@ public class MainController {
      * - Báo cho các trang con cập nhật lại UI
      */
     @FXML
-    private void reloadApp() {
+    public void reloadApp() {
         // Load lại data gốc
         CourseService.loadData();
 
