@@ -304,20 +304,25 @@ public class SemesterController {
      * Hiển thị menu thao tác cho môn học
      */
     private void showActionMenu(Course course) {
-        ContextMenu menu = new ContextMenu();
-        
-        // Tùy chọn 1: Xóa môn học
-        MenuItem deleteItem = new MenuItem("Xóa môn học");
-        deleteItem.setOnAction(e -> deleteSubject(course));
-        menu.getItems().add(deleteItem);
-        
-        // Tùy chọn 2: Di chuyển sang kỳ khác
-        MenuItem moveItem = new MenuItem("Di chuyển sang kỳ khác");
-        moveItem.setOnAction(e -> moveToOtherSemester(course));
-        menu.getItems().add(moveItem);
-        
-        // Hiển thị menu tại vị trí con trỏ chuột
-        menu.show(courseTable, javafx.geometry.Side.BOTTOM, 0, 0);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Thông báo");
+        alert.setHeaderText(null);
+        alert.setContentText("Chức năng sẽ được update sau");
+        alert.showAndWait();
+//        ContextMenu menu = new ContextMenu();
+//
+//        // Tùy chọn 1: Xóa môn học
+//        MenuItem deleteItem = new MenuItem("Xóa môn học");
+//        deleteItem.setOnAction(e -> deleteSubject(course));
+//        menu.getItems().add(deleteItem);
+//
+//        // Tùy chọn 2: Di chuyển sang kỳ khác
+//        MenuItem moveItem = new MenuItem("Di chuyển sang kỳ khác");
+//        moveItem.setOnAction(e -> moveToOtherSemester(course));
+//        menu.getItems().add(moveItem);
+//
+//        // Hiển thị menu tại vị trí con trỏ chuột
+//        menu.show(courseTable, javafx.geometry.Side.BOTTOM, 0, 0);
     }
 
     /**

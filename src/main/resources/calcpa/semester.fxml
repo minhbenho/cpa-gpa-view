@@ -48,16 +48,12 @@
             </padding>
 
         <TableView fx:id="courseTable" editable="true">
-
                 <columns>
                     <TableColumn fx:id="colCode" prefWidth="120" text="Mã môn" />
-
                     <TableColumn fx:id="colName" prefWidth="220" text="Tên môn" />
-
                     <TableColumn fx:id="colCredits" prefWidth="100" text="Số tín chỉ" />
-
                     <TableColumn fx:id="colGrade" prefWidth="80" text="Điểm" />
-
+                    <!---->
                     <TableColumn fx:id="colAction" prefWidth="60" text="" />
                 </columns>
             </TableView>
