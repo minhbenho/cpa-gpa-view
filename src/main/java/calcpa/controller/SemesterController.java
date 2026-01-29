@@ -190,17 +190,14 @@ public class SemesterController {
             }
         });
 
-        // Cột Action với nút Xóa
+        // Cột Action với nút "Thao tác khác"
         colAction.setCellFactory(param -> new TableCell<Course, Void>() {
-            private final Button deleteBtn = new Button("Xóa");
+            private final Button actionBtn = new Button("Thao tác khác");
             
             {
-                deleteBtn.setOnAction(event -> {
+                actionBtn.setOnAction(event -> {
                     Course course = getTableView().getItems().get(getIndex());
-                    CourseService.removeCourse(course);
-                    courseList.remove(course);
-                    // Lưu lại ra CSV và reload toàn app
-                    persistAndReload();
+                    showActionMenu(course);
                 });
             }
             
@@ -210,7 +207,7 @@ public class SemesterController {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    setGraphic(deleteBtn);
+                    setGraphic(actionBtn);
                 }
             }
         });
@@ -280,6 +277,109 @@ public class SemesterController {
         Map<String, Double> cpaMap = GpaService.calcCpaBySemester(groupedCourses, selectedSemesters);
         double cpa = cpaMap.getOrDefault(selectedSemester, 0.0);
         cpaLabel.setText(String.format("CPA: %.2f", cpa));
+    }
+
+    /**
+     * Hiển thị menu thao tác cho môn học
+     */
+    private void showActionMenu(Course course) {
+        ContextMenu menu = new ContextMenu();
+        
+        // Tùy chọn 1: Xóa môn học
+        MenuItem deleteItem = new MenuItem("Xóa môn học");
+        deleteItem.setOnAction(e -> deleteSubject(course));
+        menu.getItems().add(deleteItem);
+        
+        // Tùy chọn 2: Di chuyển sang kỳ khác
+        MenuItem moveItem = new MenuItem("Di chuyển sang kỳ khác");
+        moveItem.setOnAction(e -> moveToOtherSemester(course));
+        menu.getItems().add(moveItem);
+        
+        // Hiển thị menu tại vị trí con trỏ chuột
+        menu.show(courseTable, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /**
+     * Xóa môn học
+     */
+    private void deleteSubject(Course course) {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Xác nhận xóa");
+        confirmAlert.setHeaderText(null);
+        confirmAlert.setContentText("Bạn có chắc chắn muốn xóa môn '" + course.getName() + "' không?");
+        
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                CourseService.removeCourse(course);
+                courseList.remove(course);
+                persistAndReload();
+            }
+        });
+    }
+
+    /**
+     * Di chuyển môn học sang kỳ khác
+     */
+    private void moveToOtherSemester(Course course) {
+        // Lấy danh sách các kỳ (trừ kỳ hiện tại)
+        String currentSemester = semesterCombo.getValue();
+        List<String> otherSemesters = new ArrayList<>(groupedCourses.keySet());
+        otherSemesters.remove(currentSemester);
+        
+        if (otherSemesters.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Thông báo");
+            alert.setHeaderText(null);
+            alert.setContentText("Không có kỳ khác để di chuyển.");
+            alert.showAndWait();
+            return;
+        }
+        
+        // Hiển thị dialog chọn kỳ
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(otherSemesters.get(0), otherSemesters);
+        dialog.setTitle("Chọn kỳ đích");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Chọn kỳ để di chuyển môn học:");
+        
+        dialog.showAndWait().ifPresent(selectedSemester -> {
+            // Kiểm tra xem kỳ đó đã có môn này chưa
+            List<Course> targetSemesterCourses = groupedCourses.get(selectedSemester);
+            boolean isDuplicate = targetSemesterCourses.stream()
+                    .anyMatch(c -> c.getCode().equals(course.getCode()));
+            
+            if (isDuplicate) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Cảnh báo");
+                alert.setHeaderText(null);
+                alert.setContentText("Môn '" + course.getName() + "' đã tồn tại trong kỳ '" + selectedSemester + "'.");
+                alert.showAndWait();
+                return;
+            }
+            
+            // Xác nhận di chuyển
+            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Xác nhận di chuyển");
+            confirmAlert.setHeaderText(null);
+            confirmAlert.setContentText("Bạn có chắc chắn muốn di chuyển môn '" + course.getName() + 
+                                       "' sang kỳ '" + selectedSemester + "' không?");
+            
+            confirmAlert.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    // Cập nhật semester cho môn học
+                    course.setSemester(selectedSemester);
+                    
+                    // Cập nhật lại groupedCourses
+                    groupedCourses.get(currentSemester).remove(course);
+                    groupedCourses.get(selectedSemester).add(course);
+                    
+                    // Cập nhật danh sách hiển thị trên bảng
+                    courseList.remove(course);
+                    
+                    // Lưu lại ra CSV và reload toàn app
+                    persistAndReload();
+                }
+            });
+        });
     }
 
     @FXML
