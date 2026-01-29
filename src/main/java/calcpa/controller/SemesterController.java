@@ -304,11 +304,7 @@ public class SemesterController {
      * Hiển thị menu thao tác cho môn học
      */
     private void showActionMenu(Course course) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thông báo");
-        alert.setHeaderText(null);
-        alert.setContentText("Chức năng sẽ được update sau");
-        alert.showAndWait();
+        showCommingSoon();
 //        ContextMenu menu = new ContextMenu();
 //
 //        // Tùy chọn 1: Xóa môn học
@@ -410,14 +406,13 @@ public class SemesterController {
 
     @FXML
     private void onAddSemester() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thông báo");
-        alert.setHeaderText(null);
-        alert.setContentText("Chức năng sẽ được update sau");
-        alert.showAndWait();
+        showCommingSoon();
     }
     @FXML
     private void onAddCourse() {
+        showCommingSoon();
+    }
+    private void showCommingSoon(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Thông báo");
         alert.setHeaderText(null);

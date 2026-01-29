@@ -3,6 +3,7 @@ package calcpa.controller;
 import calcpa.service.CourseService;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 
 public class MainController {
 
@@ -96,5 +97,10 @@ public class MainController {
             pageSemesterController.reloadData();
         }
         // Subject / Setting hiện chưa dùng data nên tạm thời không cần làm gì
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Thông báo");
+        alert.setHeaderText(null);
+        alert.setContentText("Đã reload");
+        alert.showAndWait();
     }
 }
