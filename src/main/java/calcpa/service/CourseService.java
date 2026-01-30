@@ -46,7 +46,7 @@ public class CourseService {
         try (PrintWriter pw = new PrintWriter(
                 new OutputStreamWriter(
                         // Ghi ra file data.csv ngoài cho dễ chỉnh và reload
-                        new FileOutputStream("data.csv"),
+                        new FileOutputStream("src/main/resources/data.csv"),
                         StandardCharsets.UTF_8
                 )
         )) {

@@ -11,9 +11,10 @@ semester,code,name,credits,grade
 20261,IT4409,Công nghệ Web và dịch vụ trực tuyến,3,A
 20261,IT4785,Phát triển ứng dụng cho thiết bị di động,2,A
 20261,IT3190,Nhập môn Học máy và khai phá dữ liệu,3,A
+20261,JP2126,Tiếng Nhật 5,2,A
 20261,IT4015,Nhập môn An toàn thông tin,3,A
 20261,JP3110,Tiếng Nhật chuyên ngành 1,2,A
-20261,IT2030,Technical Writing and Presentation,3,A
+20253,IT2030,Technical Writing and Presentation,3,B+
 20253,SSH1121,Kinh tế chính trị Mác - Lênin,2,A
 20253,IT4948,Thực tập công nghiệp,2,A
 20252,IT3103,Lập trình hướng đối tượng,3,A
@@ -32,7 +33,7 @@ semester,code,name,credits,grade
 20251,IT3080,Mạng máy tính,3,A
 20251,IT3170,Thuật toán ứng dụng,2,A
 20251,IT3230,Lập trình C cơ bản,2,A
-20251,IT4015,Nhập môn An toàn thông tin,3,C
+20251,IT4015,Nhập môn An toàn thông tin,3,C+
 20251,IT4082,Kỹ thuật phần mềm,2,B
 20251,IT4172,Xử lý tín hiệu,2,B+
 20251,IT4593,Nhập môn kỹ thuật truyền thông,2,A

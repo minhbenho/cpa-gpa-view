@@ -21,10 +21,10 @@ public class ExcelReader {
             InputStream is = null;
 
             // ƯU TIÊN: đọc file data.csv ngoài (cùng thư mục chạy app)
-            Path external = Paths.get("data.csv");
-            if (Files.exists(external)) {
-                is = Files.newInputStream(external);
-            } else {
+//            Path external = Paths.get("data.csv");
+//            if (Files.exists(external)) {
+//                is = Files.newInputStream(external);
+//            } else {
                 // THỨ HAI: thử src/main/resources/data.csv (khi chạy từ IDE)
                 Path devPath = Paths.get("src/main/resources/data.csv");
                 if (Files.exists(devPath)) {
@@ -33,7 +33,7 @@ public class ExcelReader {
                     // CUỐI CÙNG: đọc từ resources đã build trong classpath
                     is = ExcelReader.class.getResourceAsStream("/data.csv");
                 }
-            }
+//            }
 
             if (is == null) {
                 throw new RuntimeException("Không tìm thấy data.csv (external, src/main/resources hoặc resources)");
