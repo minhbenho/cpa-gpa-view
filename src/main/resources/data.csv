@@ -3,7 +3,6 @@ semester,code,name,credits,grade
 20262,JP2220,Tiếng Nhật 8,1,A
 20262,IT4653,Học sâu và ứng dụng,2,A
 20262,IT4930,Nhập môn Khoa học dữ liệu,2,A
-
 20261,JP2210,Tiếng Nhật 7,2,A
 20261,IT3382,Kỹ năng ITSS học bằng tiếng Nhật 2,2,A
 20261,IT5022,Nghiên cứu tốt nghiệp 2,2,A
@@ -15,11 +14,9 @@ semester,code,name,credits,grade
 20261,JP2126,Tiếng Nhật 5,2,A
 20261,IT4015,Nhập môn An toàn thông tin,3,A
 20261,JP3110,Tiếng Nhật chuyên ngành 1,2,A
-
 20253,IT2030,Technical Writing and Presentation,3,A
 20253,SSH1121,Kinh tế chính trị Mác - Lênin,2,A
 20253,IT4948,Thực tập công nghiệp,2,A
-
 20252,IT3103,Lập trình hướng đối tượng,3,A
 20252,IT3160,Nhập môn Trí tuệ nhân tạo,3,A
 20252,IT3292,Cơ sở dữ liệu,2,A
@@ -31,13 +28,12 @@ semester,code,name,credits,grade
 20252,JP2132,Tiếng Nhật 6,2,A
 20252,JP3120,Tiếng Nhật chuyên ngành 2,2,A
 20252,MI1134,Phương trình vi phân và Chuỗi,3,A
-
 20251,IT3011,Cấu trúc dữ liệu và thuật toán,2,A
 20251,IT3070,Nguyên lý hệ điều hành,3,A
 20251,IT3080,Mạng máy tính,3,A
 20251,IT3170,Thuật toán ứng dụng,2,A
 20251,IT3230,Lập trình C cơ bản,2,A
-20251,IT4015,Nhập môn An toàn thông tin,3,C+
+20251,IT4015,Nhập môn An toàn thông tin,3,C
 20251,IT4082,Kỹ thuật phần mềm,2,B
 20251,IT4172,Xử lý tín hiệu,2,B+
 20251,IT4593,Nhập môn kỹ thuật truyền thông,2,A
