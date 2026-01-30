@@ -6,24 +6,13 @@ import calcpa.util.GradeMapper;
 import java.util.*;
 
 public class GpaService {
-
-    // =========================================================
-    // Helper: các điểm KHÔNG tính GPA / CPA
-    // =========================================================
     private static boolean isIgnoredGrade(String grade) {
         if (grade == null || grade.isBlank()) return true;
-
         grade = grade.trim().toUpperCase();
-
-        return grade.equals("X")
-                || grade.equals("R")
-                || grade.equals("I")
-                || grade.equals("W");
+        List<String> needToCalGrade= Arrays.asList("A+", "A", "B+", "B", "C+", "C", "D+", "D", "F");
+        return needToCalGrade.contains(grade)!=false;
     }
 
-    // =========================================================
-    // GPA của 1 danh sách môn (1 kỳ hoặc nhiều kỳ)
-    // =========================================================
     public static double calcGpa(List<Course> courses) {
         if (courses == null || courses.isEmpty()) return 0.0;
 

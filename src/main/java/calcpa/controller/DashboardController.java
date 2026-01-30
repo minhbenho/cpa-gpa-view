@@ -27,11 +27,11 @@ public class DashboardController {
     @FXML private CategoryAxis cpaXAxis;
     @FXML private NumberAxis gpaYAxis;
     @FXML private NumberAxis cpaYAxis;
-    // New charts for credits
-    @FXML private StackedBarChart<String, Number> creditsBarChart;
+    @FXML private LineChart<String, Number> creditsChart;
+    @FXML private CategoryAxis creditsXAxis;
+    @FXML private NumberAxis creditsYAxis;
     @FXML private CategoryAxis creditsBarXAxis;
     @FXML private NumberAxis creditsBarYAxis;
-    @FXML private LineChart<String, Number> creditsCumChart;
     @FXML private CategoryAxis creditsCumXAxis;
     @FXML private NumberAxis creditsCumYAxis;
     private final Set<String> selectedSemesters = new LinkedHashSet<>();
@@ -118,6 +118,7 @@ public class DashboardController {
     @FXML public void initialize() {
         setupYAxis(gpaYAxis);
         setupYAxis(cpaYAxis);
+        setupCreditsYAxis();
         gpaChart.setAnimated(false);
         cpaChart.setAnimated(false);
         reloadData();
@@ -139,66 +140,77 @@ public class DashboardController {
     }
 
     private void updateCreditsCharts() {
-        if (groupedCourses == null || groupedCourses.isEmpty()) {
-            if (creditsBarChart != null) creditsBarChart.getData().clear();
-            if (creditsCumChart != null) creditsCumChart.getData().clear();
-            return;
-        }
+        creditsChart.getData().clear();
+        if (groupedCourses == null || selectedSemesters.isEmpty()) return;
 
-        // Ensure chronological order
-        List<String> allSemesters = new ArrayList<>(groupedCourses.keySet());
-        Collections.sort(allSemesters);
+        List<String> semesters = new ArrayList<>(selectedSemesters);
+        Collections.sort(semesters);
+        creditsXAxis.setCategories(FXCollections.observableArrayList(semesters));
+
+        XYChart.Series<String, Number> seriesTotal = new XYChart.Series<>();
+        seriesTotal.setName("Tổng số tín chỉ");
 
         XYChart.Series<String, Number> seriesNew = new XYChart.Series<>();
-        seriesNew.setName("Học lần đầu");
+        seriesNew.setName("Số tín chỉ học trong kỳ");
+
         XYChart.Series<String, Number> seriesRepeat = new XYChart.Series<>();
-        seriesRepeat.setName("Học lại");
-        XYChart.Series<String, Number> seriesCum = new XYChart.Series<>();
-        seriesCum.setName("Tích lũy");
+        seriesRepeat.setName("Số tín chỉ học cải thiện");
 
         Set<String> seenCodes = new HashSet<>();
-        int runningUniqueCredits = 0;
 
-        for (String sem : allSemesters) {
+        for (String sem : semesters) {
             List<Course> list = groupedCourses.getOrDefault(sem, List.of());
+
             int newCredits = 0;
             int repeatCredits = 0;
 
             for (Course c : list) {
-                String code = c.getCode();
-                if (code == null) continue;
-                if (seenCodes.contains(code)) {
+                if (c.getCode() == null) continue;
+                if (seenCodes.contains(c.getCode())) {
                     repeatCredits += c.getCredits();
                 } else {
                     newCredits += c.getCredits();
-                    seenCodes.add(code);
-                    runningUniqueCredits += c.getCredits();
+                    seenCodes.add(c.getCode());
                 }
             }
 
-            if (selectedSemesters.contains(sem)) {
-                seriesNew.getData().add(new XYChart.Data<>(sem, newCredits));
-                seriesRepeat.getData().add(new XYChart.Data<>(sem, repeatCredits));
-                seriesCum.getData().add(new XYChart.Data<>(sem, runningUniqueCredits));
-            }
+            int totalCredits = newCredits + repeatCredits;
+
+            seriesNew.getData().add(createPoint(sem, newCredits));
+            seriesRepeat.getData().add(createPoint(sem, repeatCredits));
+            seriesTotal.getData().add(createPoint(sem, totalCredits));
         }
 
-        if (creditsBarChart != null) {
-            creditsBarChart.getData().clear();
-            creditsBarChart.getData().addAll(seriesNew, seriesRepeat);
-        }
-        if (creditsCumChart != null) {
-            creditsCumChart.getData().clear();
-            creditsCumChart.getData().add(seriesCum);
-        }
+        // add theo thứ tự: tổng -> mới -> cải thiện
+        creditsChart.getData().addAll(seriesTotal, seriesNew, seriesRepeat);
 
         Platform.runLater(() -> {
-            if (creditsBarChart != null) { creditsBarChart.applyCss(); creditsBarChart.layout(); }
-            if (creditsCumChart != null) { creditsCumChart.applyCss(); creditsCumChart.layout(); }
+            creditsChart.applyCss();
+            creditsChart.layout();
+
+            setSeriesColor(seriesTotal, "#1e88e5");   // xanh dương
+            setSeriesColor(seriesNew, "#43a047");     // xanh lá
+            setSeriesColor(seriesRepeat, "#fbc02d");  // vàng
+
+            addTooltips(seriesTotal);
             addTooltips(seriesNew);
             addTooltips(seriesRepeat);
-            addTooltips(seriesCum);
         });
+    }
+
+    private void setSeriesColor(XYChart.Series<String, Number> series, String color) {
+        if (series.getNode() != null) {
+            series.getNode().lookup(".chart-series-line")
+                    .setStyle("-fx-stroke: " + color + ";");
+        }
+        for (XYChart.Data<String, Number> d : series.getData()) {
+            if (d.getNode() != null) {
+                d.getNode().lookup("Circle")
+                        .setStyle("-fx-stroke: " + color + "; -fx-fill: white;");
+                d.getNode().lookup("Label")
+                        .setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold;");
+            }
+        }
     }
 
     private void setupYAxis(NumberAxis axis) {
@@ -237,4 +249,13 @@ public class DashboardController {
         data.setNode(stack);
         return data;
     }
+
+    private void setupCreditsYAxis() {
+        creditsYAxis.setAutoRanging(false);
+        creditsYAxis.setLowerBound(0);
+        creditsYAxis.setUpperBound(30);
+        creditsYAxis.setTickUnit(0.5);
+        creditsYAxis.setMinorTickCount(0);
+    }
+
 }

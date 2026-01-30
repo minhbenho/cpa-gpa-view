@@ -11,54 +11,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CourseService {
-
-    // =========================================================
-    // DATA
-    // =========================================================
     private static final List<Course> courses = new ArrayList<>();
 
-    // =========================================================
-    // LOAD DATA (CSV → Course)
-    // =========================================================
     public static void loadData() {
         courses.clear();
-        courses.addAll(ExcelReader.readCourses(null));
+        courses.addAll(ExcelReader.readCourses());
     }
 
-    // =========================================================
-    // GET ALL
-    // =========================================================
     public static List<Course> getAllCourses() {
         return courses;
     }
 
-    // =========================================================
-    // REMOVE COURSE
-    // =========================================================
     public static void removeCourse(Course c) {
         courses.remove(c);
     }
 
-    // =========================================================
-    // SAVE DATA (Course → CSV)
-    // =========================================================
+    public static void changeSemester(Course c, String newSemester){
+        c.setSemester(newSemester);
+    }
+
     public static void saveData() {
         try (PrintWriter pw = new PrintWriter(
-                new OutputStreamWriter(
-                        // Ghi ra file data.csv ngoài cho dễ chỉnh và reload
-                        new FileOutputStream("src/main/resources/data.csv"),
-                        StandardCharsets.UTF_8
-                )
-        )) {
-            // header
+                new OutputStreamWriter( new FileOutputStream("src/main/resources/data.csv"),
+                        StandardCharsets.UTF_8 ))) {
             pw.println("semester,code,name,credits,grade");
-
-            for (Course c : courses) {
+            String s=courses.getFirst().getSemester();
+            String ss;
+            for (Course c : courses){
+                ss=c.getSemester();
+                if(!ss.equals(s)){
+                    pw.println();
+                    s=ss;
+                }
                 pw.println(c.toCsvLine());
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }

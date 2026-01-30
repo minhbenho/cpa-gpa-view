@@ -17,11 +17,9 @@
         <top>
             <MenuButton fx:id="semesterMenuButton" text="Chọn kỳ" BorderPane.alignment="CENTER" />
         </top>
-
         <!-- CENTER -->
         <center>
             <VBox maxHeight="Infinity" maxWidth="Infinity" spacing="10" BorderPane.alignment="CENTER">
-
                 <LineChart fx:id="gpaChart" createSymbols="false" layoutX="20" layoutY="80" prefHeight="297.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="gpaXAxis" />
@@ -30,7 +28,6 @@
                         <NumberAxis fx:id="gpaYAxis" label="GPA" lowerBound="0" upperBound="4.0" />
                     </yAxis>
                 </LineChart>
-
                 <LineChart fx:id="cpaChart" createSymbols="false" layoutX="20" layoutY="80" prefHeight="297.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="cpaXAxis" />
@@ -39,8 +36,7 @@
                         <NumberAxis fx:id="cpaYAxis" label="CPA" lowerBound="0" upperBound="4.0" />
                     </yAxis>
                 </LineChart>
-
-                <!-- NEW: Credits stacked bar and cumulative line -->
+                <!-- NEW: Credits stacked bar and cumulative line
                 <StackedBarChart fx:id="creditsBarChart" prefHeight="222.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="creditsBarXAxis" />
@@ -49,7 +45,16 @@
                         <NumberAxis fx:id="creditsBarYAxis" label="Số tín chỉ" />
                     </yAxis>
                 </StackedBarChart>
-
+                -->
+                <LineChart fx:id="creditsChart"
+                           animated="false">
+                    <xAxis>
+                        <CategoryAxis fx:id="creditsXAxis"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="creditsYAxis"/>
+                    </yAxis>
+                </LineChart>
                 <LineChart fx:id="creditsCumChart" prefHeight="245.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="creditsCumXAxis" />
@@ -58,7 +63,6 @@
                         <NumberAxis fx:id="creditsCumYAxis" label="Tín chỉ tích lũy" />
                     </yAxis>
                 </LineChart>
-
             </VBox>
         </center>
 
