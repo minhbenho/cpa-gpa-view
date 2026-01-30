@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
 
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -24,6 +25,7 @@ public class SemesterController {
     @FXML private TableColumn<Course, Void> colAction;
     @FXML private Label gpaLabel;
     @FXML private Label cpaLabel;
+    
 
     private Map<String, List<Course>> groupedCourses = new LinkedHashMap<>();
     private final ObservableList<Course> courseList = FXCollections.observableArrayList();
@@ -248,6 +250,8 @@ public class SemesterController {
             main.reloadApp();
         }
     }
+
+    
 
     private void onSemesterSelected() {
         String selectedSemester = semesterCombo.getValue();

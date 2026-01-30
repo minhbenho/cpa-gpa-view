@@ -10,6 +10,7 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.*;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
@@ -26,6 +27,13 @@ public class DashboardController {
     @FXML private CategoryAxis cpaXAxis;
     @FXML private NumberAxis gpaYAxis;
     @FXML private NumberAxis cpaYAxis;
+    // New charts for credits
+    @FXML private StackedBarChart<String, Number> creditsBarChart;
+    @FXML private CategoryAxis creditsBarXAxis;
+    @FXML private NumberAxis creditsBarYAxis;
+    @FXML private LineChart<String, Number> creditsCumChart;
+    @FXML private CategoryAxis creditsCumXAxis;
+    @FXML private NumberAxis creditsCumYAxis;
     private final Set<String> selectedSemesters = new LinkedHashSet<>();
 
     private void saveSelectedSemesters() {
@@ -60,6 +68,7 @@ public class DashboardController {
                 saveSelectedSemesters();   // ⭐ dòng mấu chốt
                 updateGpaChart();
                 updateCpaChart();
+                updateCreditsCharts();
             });
             CustomMenuItem menuItem = new CustomMenuItem(checkBox);
             menuItem.setHideOnClick(false); // ✅ HỢP LỆ 100%
@@ -126,6 +135,70 @@ public class DashboardController {
         initSemesterMenu();
         updateGpaChart();
         updateCpaChart();
+        updateCreditsCharts();
+    }
+
+    private void updateCreditsCharts() {
+        if (groupedCourses == null || groupedCourses.isEmpty()) {
+            if (creditsBarChart != null) creditsBarChart.getData().clear();
+            if (creditsCumChart != null) creditsCumChart.getData().clear();
+            return;
+        }
+
+        // Ensure chronological order
+        List<String> allSemesters = new ArrayList<>(groupedCourses.keySet());
+        Collections.sort(allSemesters);
+
+        XYChart.Series<String, Number> seriesNew = new XYChart.Series<>();
+        seriesNew.setName("Học lần đầu");
+        XYChart.Series<String, Number> seriesRepeat = new XYChart.Series<>();
+        seriesRepeat.setName("Học lại");
+        XYChart.Series<String, Number> seriesCum = new XYChart.Series<>();
+        seriesCum.setName("Tích lũy");
+
+        Set<String> seenCodes = new HashSet<>();
+        int runningUniqueCredits = 0;
+
+        for (String sem : allSemesters) {
+            List<Course> list = groupedCourses.getOrDefault(sem, List.of());
+            int newCredits = 0;
+            int repeatCredits = 0;
+
+            for (Course c : list) {
+                String code = c.getCode();
+                if (code == null) continue;
+                if (seenCodes.contains(code)) {
+                    repeatCredits += c.getCredits();
+                } else {
+                    newCredits += c.getCredits();
+                    seenCodes.add(code);
+                    runningUniqueCredits += c.getCredits();
+                }
+            }
+
+            if (selectedSemesters.contains(sem)) {
+                seriesNew.getData().add(new XYChart.Data<>(sem, newCredits));
+                seriesRepeat.getData().add(new XYChart.Data<>(sem, repeatCredits));
+                seriesCum.getData().add(new XYChart.Data<>(sem, runningUniqueCredits));
+            }
+        }
+
+        if (creditsBarChart != null) {
+            creditsBarChart.getData().clear();
+            creditsBarChart.getData().addAll(seriesNew, seriesRepeat);
+        }
+        if (creditsCumChart != null) {
+            creditsCumChart.getData().clear();
+            creditsCumChart.getData().add(seriesCum);
+        }
+
+        Platform.runLater(() -> {
+            if (creditsBarChart != null) { creditsBarChart.applyCss(); creditsBarChart.layout(); }
+            if (creditsCumChart != null) { creditsCumChart.applyCss(); creditsCumChart.layout(); }
+            addTooltips(seriesNew);
+            addTooltips(seriesRepeat);
+            addTooltips(seriesCum);
+        });
     }
 
     private void setupYAxis(NumberAxis axis) {

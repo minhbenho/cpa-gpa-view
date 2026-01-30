@@ -3,56 +3,59 @@
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.StackedBarChart?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.DashboardController"
->
+<AnchorPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.DashboardController">
 
-    <BorderPane
-            AnchorPane.topAnchor="0"
-            AnchorPane.bottomAnchor="0"
-            AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0">
+    <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
         <!-- TOP -->
         <top>
-            <MenuButton fx:id="semesterMenuButton" text="Chọn kỳ" BorderPane.alignment="CENTER"/>
+            <MenuButton fx:id="semesterMenuButton" text="Chọn kỳ" BorderPane.alignment="CENTER" />
         </top>
 
         <!-- CENTER -->
         <center>
-            <VBox spacing="10"
-                  maxWidth="Infinity"
-                  maxHeight="Infinity"
-                  BorderPane.alignment="CENTER">
+            <VBox maxHeight="Infinity" maxWidth="Infinity" spacing="10" BorderPane.alignment="CENTER">
 
-                <LineChart fx:id="gpaChart" createSymbols="false"
-                           layoutX="20"
-                           layoutY="80"
-                           prefWidth="760"
-                           prefHeight="450">
+                <LineChart fx:id="gpaChart" createSymbols="false" layoutX="20" layoutY="80" prefHeight="297.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="gpaXAxis" />
                     </xAxis>
                     <yAxis>
-                        <NumberAxis fx:id="gpaYAxis" label="GPA" lowerBound="0" upperBound="4.0"/>
+                        <NumberAxis fx:id="gpaYAxis" label="GPA" lowerBound="0" upperBound="4.0" />
                     </yAxis>
                 </LineChart>
 
-                <LineChart fx:id="cpaChart" createSymbols="false"
-                           layoutX="20"
-                           layoutY="80"
-                           prefWidth="760"
-                           prefHeight="450">
+                <LineChart fx:id="cpaChart" createSymbols="false" layoutX="20" layoutY="80" prefHeight="297.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="cpaXAxis" />
                     </xAxis>
                     <yAxis>
-                        <NumberAxis fx:id="cpaYAxis" label="CPA" lowerBound="0" upperBound="4.0"/>
+                        <NumberAxis fx:id="cpaYAxis" label="CPA" lowerBound="0" upperBound="4.0" />
+                    </yAxis>
+                </LineChart>
+
+                <!-- NEW: Credits stacked bar and cumulative line -->
+                <StackedBarChart fx:id="creditsBarChart" prefHeight="222.0" prefWidth="760">
+                    <xAxis>
+                        <CategoryAxis fx:id="creditsBarXAxis" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="creditsBarYAxis" label="Số tín chỉ" />
+                    </yAxis>
+                </StackedBarChart>
+
+                <LineChart fx:id="creditsCumChart" prefHeight="245.0" prefWidth="760">
+                    <xAxis>
+                        <CategoryAxis fx:id="creditsCumXAxis" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="creditsCumYAxis" label="Tín chỉ tích lũy" />
                     </yAxis>
                 </LineChart>
 
