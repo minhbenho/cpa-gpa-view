@@ -1,7 +1,6 @@
 package calcpa.service;
 
 import calcpa.model.Course;
-import calcpa.util.GradeMapper;
 
 import java.util.*;
 
@@ -10,56 +9,53 @@ public class GpaService {
         if (grade == null || grade.isBlank()) return true;
         grade = grade.trim().toUpperCase();
         List<String> needToCalGrade= Arrays.asList("A+", "A", "B+", "B", "C+", "C", "D+", "D", "F");
-        return needToCalGrade.contains(grade)!=false;
+        return !needToCalGrade.contains(grade);
+    }
+
+    private static double toGrade4(String grade) {
+        switch (grade) {
+            case "A+","A":  return 4.0;
+            case "B+": return 3.5;
+            case "B":  return 3.0;
+            case "C+": return 2.5;
+            case "C":  return 2.0;
+            case "D+": return 1.5;
+            case "D":  return 1.0;
+            case "F": return 0.0;
+            default: throw new IllegalArgumentException("Điểm không hợp lệ: " + grade);
+        }
     }
 
     public static double calcGpa(List<Course> courses) {
         if (courses == null || courses.isEmpty()) return 0.0;
-
         double totalPoints = 0.0;
         int totalCredits = 0;
-
         for (Course c : courses) {
             String grade = c.getGrade();
-
             if (isIgnoredGrade(grade)) continue;
-
-            double grade4 = GradeMapper.toGrade4(grade);
-
+            double grade4 = toGrade4(grade);
             totalPoints += grade4 * c.getCredits();
             totalCredits += c.getCredits();
         }
-
         return totalCredits == 0 ? 0.0 : totalPoints / totalCredits;
     }
 
-    // =========================================================
-    // Gom môn học theo kỳ
-    // =========================================================
     public static Map<String, List<Course>> groupBySemester(List<Course> courses) {
         Map<String, List<Course>> map = new TreeMap<>();
-
-        for (Course c : courses) {
-            map.computeIfAbsent(c.getSemester(), k -> new ArrayList<>())
-                    .add(c);
-        }
-
+        for (Course c : courses) map.computeIfAbsent(c.getSemester(), k -> new ArrayList<>()).add(c);
         return map;
     }
 
-    // =========================================================
-    // CPA tính dồn từ kỳ đầu → kỳ được chọn
-    // =========================================================
     private static List<Course> normalizeByBestGrade(List<Course> courses) {
         Map<String, Course> bestByCode = new HashMap<>();
         for (Course c : courses) {
             if (isIgnoredGrade(c.getGrade())) continue;
             String code = c.getCode();
-            double grade4 = GradeMapper.toGrade4(c.getGrade());
+            double grade4 = toGrade4(c.getGrade());
             if (!bestByCode.containsKey(code)) bestByCode.put(code, c);
             else {
                 Course old = bestByCode.get(code);
-                double oldGrade4 = GradeMapper.toGrade4(old.getGrade());
+                double oldGrade4 = toGrade4(old.getGrade());
                 if (grade4 > oldGrade4) bestByCode.put(code, c);
             }
         }
