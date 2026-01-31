@@ -23,7 +23,7 @@
             <VBox maxHeight="Infinity" maxWidth="Infinity" spacing="10" BorderPane.alignment="CENTER">
 
                 <!-- Biểu đồ tín chỉ tích lũy đến kỳ -->
-                <LineChart fx:id="creditsCumChart" animated="false" prefHeight="297.0" prefWidth="760">
+                <LineChart fx:id="creditsCumChart" animated="false" prefHeight="250.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="creditsCumXAxis" />
                     </xAxis>
@@ -31,8 +31,19 @@
                         <NumberAxis fx:id="creditsCumYAxis" label="Tín chỉ tích lũy" />
                     </yAxis>
                 </LineChart>
-                <!-- Biểu đồ số tín chỉ học trong kỳ -->
-                <StackedBarChart fx:id="creditsChart" animated="false" prefHeight="297.0" prefWidth="760">
+                
+                <!-- Biểu đồ đường số tín chỉ học trong kỳ -->
+                <LineChart fx:id="creditsPerSemesterChart" animated="false" prefHeight="250.0" prefWidth="760">
+                    <xAxis>
+                        <CategoryAxis fx:id="creditsPerSemesterXAxis" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="creditsPerSemesterYAxis" label="Số tín chỉ" />
+                    </yAxis>
+                </LineChart>
+                
+                <!-- Biểu đồ cột số tín chỉ học trong kỳ -->
+                <StackedBarChart fx:id="creditsChart" animated="false" prefHeight="250.0" prefWidth="760">
                     <xAxis>
                         <CategoryAxis fx:id="creditsXAxis" />
                     </xAxis>
