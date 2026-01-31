@@ -3,7 +3,6 @@ package calcpa.controller;
 import calcpa.model.Course;
 import calcpa.service.CourseService;
 import calcpa.service.GpaService;
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -18,12 +17,8 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import javafx.util.Duration;
 
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -40,7 +35,6 @@ public class DashboardCreditController {
     
     private final Set<String> selectedSemesters = new LinkedHashSet<>();
     private Map<String, List<Course>> groupedCourses;
-    private Pane labelsOverlay;  // Overlay để chứa labels trên chart
 
     private void saveSelectedSemesters() {
         Preferences prefs = Preferences.userNodeForPackage(DashboardCreditController.class);
@@ -86,43 +80,7 @@ public class DashboardCreditController {
         creditsChart.setAnimated(false);
         creditsCumChart.setAnimated(false);
         
-        // Setup overlay pane cho labels
-        setupLabelsOverlay();
-        
         reloadData();
-    }
-
-    private void setupLabelsOverlay() {
-        // Tạo overlay pane nằm trên chart
-        labelsOverlay = new Pane();
-        labelsOverlay.setStyle("-fx-background-color: transparent;");
-        labelsOverlay.setMouseTransparent(true);  // Không chặn mouse events cho chart
-        labelsOverlay.setPrefSize(creditsChart.getPrefWidth(), creditsChart.getPrefHeight());
-        
-        // Không bind layoutX/Y vì sẽ xung đột với VBox layout
-        // Thay vào đó, only bind width/height
-        labelsOverlay.prefWidthProperty().bind(creditsChart.prefWidthProperty());
-        labelsOverlay.prefHeightProperty().bind(creditsChart.prefHeightProperty());
-        labelsOverlay.setMinWidth(Pane.USE_PREF_SIZE);
-        labelsOverlay.setMinHeight(Pane.USE_PREF_SIZE);
-        labelsOverlay.setMaxWidth(Pane.USE_PREF_SIZE);
-        labelsOverlay.setMaxHeight(Pane.USE_PREF_SIZE);
-        
-        // Thay thế creditsChart bằng StackPane chứa chart + overlay
-        javafx.scene.Parent parent = creditsChart.getParent();
-        if (parent instanceof VBox) {
-            VBox vbox = (VBox) parent;
-            int index = vbox.getChildren().indexOf(creditsChart);
-            if (index >= 0) {
-                vbox.getChildren().remove(creditsChart);
-                
-                // Tạo StackPane chứa chart và overlay
-                StackPane stackPane = new StackPane(creditsChart, labelsOverlay);
-                stackPane.setPrefHeight(creditsChart.getPrefHeight());
-                vbox.getChildren().add(index, stackPane);
-                VBox.setVgrow(stackPane, javafx.scene.layout.Priority.ALWAYS);
-            }
-        }
     }
 
     /**
@@ -190,11 +148,8 @@ public class DashboardCreditController {
             addBarTooltips(seriesNew);
             addBarTooltips(seriesRepeat);
             
-            // Delay thêm labels để bar rendering xong
-            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
-                    javafx.util.Duration.millis(100));
-            pause.setOnFinished(event -> addLabelsToChart(creditsData));
-            pause.play();
+            // Thêm labels trực tiếp vào bar nodes
+            addLabelsToBarNodes(creditsData);
         });
     }
 
@@ -262,91 +217,180 @@ public class DashboardCreditController {
         }
     }
 
-    private void addLabelsToChart(Map<String, int[]> creditsData) {
-        System.out.println("addLabelsToChart called with " + creditsData.size() + " bars");
+    private List<Label> currentLabels = new ArrayList<>();
+    private Map<String, int[]> lastCreditsData = null;
+    private boolean listenersAdded = false;
+    
+    private void addLabelsToBarNodes(Map<String, int[]> creditsData) {
+        lastCreditsData = creditsData;
         
-        // Clear old labels
-        labelsOverlay.getChildren().clear();
-        
-        // Tìm plot area
-        javafx.scene.Node plotArea = creditsChart.lookup(".chart-plot-background");
-        if (plotArea == null) {
-            System.out.println("plotArea is null!");
-            return;
+        Platform.runLater(() -> {
+            Platform.runLater(() -> {
+                // Try different selectors
+                javafx.scene.Node plotContent = creditsChart.lookup(".chart-plot-background");
+                if (plotContent == null) {
+                    plotContent = creditsChart.lookup(".chart-content");
+                }
+                if (plotContent == null) {
+                    plotContent = creditsChart.lookup(".plot-content");
+                }
+                
+                if (plotContent == null) {
+                    System.out.println("ERROR: Could not find plot area. Available nodes:");
+                    printNodeTree(creditsChart, 0);
+                    return;
+                }
+                
+                System.out.println("Found plot area: " + plotContent.getClass().getName());
+                
+                // Get the parent pane of the plot area
+                javafx.scene.Parent parent = plotContent.getParent();
+                if (!(parent instanceof javafx.scene.layout.Pane)) {
+                    System.out.println("ERROR: Parent is not a Pane: " + parent.getClass().getName());
+                    return;
+                }
+                
+                javafx.scene.layout.Pane plotPane = (javafx.scene.layout.Pane) parent;
+                
+                // Clear old labels
+                plotPane.getChildren().removeAll(currentLabels);
+                currentLabels.clear();
+                
+                System.out.println("Adding labels for " + creditsData.size() + " semesters");
+                
+                List<String> semesters = new ArrayList<>(creditsData.keySet());
+                
+                for (int i = 0; i < semesters.size(); i++) {
+                    String semester = semesters.get(i);
+                    int[] credits = creditsData.get(semester);
+                    int newCredits = credits[0];
+                    int repeatCredits = credits[1];
+                    int total = newCredits + repeatCredits;
+                    
+                    System.out.println("Semester " + semester + ": new=" + newCredits + ", repeat=" + repeatCredits);
+                    
+                    // Lấy bar nodes
+                    XYChart.Data<String, Number> newData = creditsChart.getData().get(0).getData().get(i);
+                    XYChart.Data<String, Number> repeatData = creditsChart.getData().get(1).getData().get(i);
+                    
+                    javafx.scene.Node newBarNode = newData.getNode();
+                    javafx.scene.Node repeatBarNode = repeatData.getNode();
+                    
+                    // Add label cho new credits (xanh lá - phần dưới)
+                    if (newBarNode != null && newCredits > 0) {
+                        javafx.geometry.Bounds bounds = newBarNode.getBoundsInParent();
+                        Label label = createValueLabel(String.valueOf(newCredits));
+                        positionLabelAtCenter(label, bounds, plotPane);
+                        currentLabels.add(label);
+                    }
+                    
+                    // Add label cho repeat credits (vàng - phần trên)
+                    if (repeatBarNode != null && repeatCredits > 0) {
+                        javafx.geometry.Bounds bounds = repeatBarNode.getBoundsInParent();
+                        Label label = createValueLabel(String.valueOf(repeatCredits));
+                        positionLabelAtCenter(label, bounds, plotPane);
+                        currentLabels.add(label);
+                    }
+                    
+                    // Add total label (hộp xanh dương trên cùng)
+                    if (repeatBarNode != null && total > 0) {
+                        javafx.geometry.Bounds bounds = repeatBarNode.getBoundsInParent();
+                        Label label = createTotalLabel(String.valueOf(total));
+                        positionLabelAboveBar(label, bounds, plotPane);
+                        currentLabels.add(label);
+                    }
+                }
+                
+                System.out.println("Total labels added: " + currentLabels.size());
+                
+                // Add resize listener only once
+                if (!listenersAdded) {
+                    listenersAdded = true;
+                    creditsChart.widthProperty().addListener((obs, old, newVal) -> {
+                        if (lastCreditsData != null && Math.abs(newVal.doubleValue() - old.doubleValue()) > 5) {
+                            addLabelsToBarNodes(lastCreditsData);
+                        }
+                    });
+                    creditsChart.heightProperty().addListener((obs, old, newVal) -> {
+                        if (lastCreditsData != null && Math.abs(newVal.doubleValue() - old.doubleValue()) > 5) {
+                            addLabelsToBarNodes(lastCreditsData);
+                        }
+                    });
+                }
+            });
+        });
+    }
+    
+    private void printNodeTree(javafx.scene.Node node, int depth) {
+        String indent = "  ".repeat(depth);
+        System.out.println(indent + node.getClass().getSimpleName() + " - " + node.getId() + " - " + node.getStyleClass());
+        if (node instanceof javafx.scene.Parent) {
+            for (javafx.scene.Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
+                printNodeTree(child, depth + 1);
+            }
         }
-
-        double plotX = plotArea.getBoundsInParent().getMinX() - creditsChart.getBoundsInParent().getMinX();
-        double plotY = plotArea.getBoundsInParent().getMinY() - creditsChart.getBoundsInParent().getMinY();
-        double plotWidth = plotArea.getBoundsInParent().getWidth();
-        double plotHeight = plotArea.getBoundsInParent().getHeight();
+    }
+    
+    private Label createValueLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+        label.setMouseTransparent(true);
+        return label;
+    }
+    
+    private Label createTotalLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("""
+                -fx-text-fill: white;
+                -fx-font-weight: bold;
+                -fx-font-size: 11px;
+                -fx-background-color: #1e88e5;
+                -fx-padding: 3 7;
+                -fx-background-radius: 3;
+            """);
+        label.setMouseTransparent(true);
+        return label;
+    }
+    
+    private void positionLabelAtCenter(Label label, javafx.geometry.Bounds barBounds, javafx.scene.layout.Pane plotPane) {
+        // Force layout to get label size
+        plotPane.getChildren().add(label);
+        label.applyCss();
+        label.layout();
         
-        System.out.println("Plot area (relative): x=" + plotX + " y=" + plotY + " w=" + plotWidth + " h=" + plotHeight);
-
-        NumberAxis yAxis = creditsYAxis;
-        double yMax = yAxis.getUpperBound();
-        double yMin = yAxis.getLowerBound();
-        double yRange = yMax - yMin;
-        double pixelsPerUnit = plotHeight / yRange;
-        double yBottom = plotY + plotHeight;
-
-        double barWidth = plotWidth / creditsData.size();
-        int barIndex = 0;
-
-        for (String sem : creditsData.keySet()) {
-            int[] credits = creditsData.get(sem);
-            int newCredits = credits[0];
-            int repeatCredits = credits[1];
-            int total = newCredits + repeatCredits;
-
-            double barCenterX = plotX + barIndex * barWidth + barWidth / 2;
-            System.out.println("Bar " + barIndex + ": new=" + newCredits + " repeat=" + repeatCredits + " total=" + total);
-
-            // Label tín chỉ tích lũy thêm (xanh lá)
-            if (newCredits > 0) {
-                Label newLabel = new Label(String.valueOf(newCredits));
-                newLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;");
-                newLabel.setAlignment(Pos.CENTER);
-                double yNewLabel = yBottom - (newCredits * 0.5 * pixelsPerUnit);
-                newLabel.setLayoutX(barCenterX - 20);
-                newLabel.setLayoutY(yNewLabel - 10);
-                labelsOverlay.getChildren().add(newLabel);
-                System.out.println("  Added new label at x=" + barCenterX + " y=" + yNewLabel);
-            }
-
-            // Label tín chỉ học cải thiện (vàng)
-            if (repeatCredits > 0) {
-                Label repeatLabel = new Label(String.valueOf(repeatCredits));
-                repeatLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;");
-                repeatLabel.setAlignment(Pos.CENTER);
-                double yRepeatLabel = yBottom - ((newCredits + repeatCredits * 0.5) * pixelsPerUnit);
-                repeatLabel.setLayoutX(barCenterX - 20);
-                repeatLabel.setLayoutY(yRepeatLabel - 10);
-                labelsOverlay.getChildren().add(repeatLabel);
-                System.out.println("  Added repeat label at x=" + barCenterX + " y=" + yRepeatLabel);
-            }
-
-            // Total label (xanh dương box)
-            if (total > 0) {
-                Label totalLabel = new Label(String.valueOf(total));
-                totalLabel.setStyle("""
-                        -fx-text-fill: white;
-                        -fx-font-weight: bold;
-                        -fx-font-size: 10;
-                        -fx-background-color: #1e88e5;
-                        -fx-padding: 2 5;
-                        -fx-border-radius: 2;
-                        -fx-background-radius: 2;
-                    """);
-                totalLabel.setAlignment(Pos.CENTER);
-                double yTotalLabel = yBottom - (total * pixelsPerUnit) - 20;
-                totalLabel.setLayoutX(barCenterX - 20);
-                totalLabel.setLayoutY(yTotalLabel);
-                labelsOverlay.getChildren().add(totalLabel);
-                System.out.println("  Added total label at x=" + barCenterX + " y=" + yTotalLabel);
-            }
-
-            barIndex++;
-        }
+        // Calculate center position
+        double centerX = barBounds.getMinX() + barBounds.getWidth() / 2;
+        double centerY = barBounds.getMinY() + barBounds.getHeight() / 2;
+        
+        // Position label (accounting for label's own size)
+        label.setLayoutX(centerX - label.getWidth() / 2);
+        label.setLayoutY(centerY - label.getHeight() / 2);
+        
+        // Ensure label is on top
+        label.toFront();
+        
+        System.out.println("Label '" + label.getText() + "' positioned at: " + label.getLayoutX() + ", " + label.getLayoutY() + 
+                           " (bar bounds: " + barBounds.getMinX() + ", " + barBounds.getMinY() + ", " + barBounds.getWidth() + ", " + barBounds.getHeight() + ")");
+    }
+    
+    private void positionLabelAboveBar(Label label, javafx.geometry.Bounds barBounds, javafx.scene.layout.Pane plotPane) {
+        // Force layout to get label size
+        plotPane.getChildren().add(label);
+        label.applyCss();
+        label.layout();
+        
+        // Calculate position above bar
+        double centerX = barBounds.getMinX() + barBounds.getWidth() / 2;
+        double topY = barBounds.getMinY() - label.getHeight() - 5;
+        
+        // Position label
+        label.setLayoutX(centerX - label.getWidth() / 2);
+        label.setLayoutY(topY);
+        
+        // Ensure label is on top
+        label.toFront();
+        
+        System.out.println("Total label '" + label.getText() + "' positioned at: " + label.getLayoutX() + ", " + label.getLayoutY());
     }
 
     private void addTooltips(XYChart.Series<String, Number> series) {
