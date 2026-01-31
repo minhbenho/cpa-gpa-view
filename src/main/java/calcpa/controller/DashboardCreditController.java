@@ -19,6 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
@@ -39,6 +40,7 @@ public class DashboardCreditController {
     
     private final Set<String> selectedSemesters = new LinkedHashSet<>();
     private Map<String, List<Course>> groupedCourses;
+    private Pane labelsOverlay;  // Overlay để chứa labels trên chart
 
     private void saveSelectedSemesters() {
         Preferences prefs = Preferences.userNodeForPackage(DashboardCreditController.class);
@@ -83,7 +85,44 @@ public class DashboardCreditController {
         setupCumulativeCreditsYAxis();
         creditsChart.setAnimated(false);
         creditsCumChart.setAnimated(false);
+        
+        // Setup overlay pane cho labels
+        setupLabelsOverlay();
+        
         reloadData();
+    }
+
+    private void setupLabelsOverlay() {
+        // Tạo overlay pane nằm trên chart
+        labelsOverlay = new Pane();
+        labelsOverlay.setStyle("-fx-background-color: transparent;");
+        labelsOverlay.setMouseTransparent(true);  // Không chặn mouse events cho chart
+        labelsOverlay.setPrefSize(creditsChart.getPrefWidth(), creditsChart.getPrefHeight());
+        
+        // Không bind layoutX/Y vì sẽ xung đột với VBox layout
+        // Thay vào đó, only bind width/height
+        labelsOverlay.prefWidthProperty().bind(creditsChart.prefWidthProperty());
+        labelsOverlay.prefHeightProperty().bind(creditsChart.prefHeightProperty());
+        labelsOverlay.setMinWidth(Pane.USE_PREF_SIZE);
+        labelsOverlay.setMinHeight(Pane.USE_PREF_SIZE);
+        labelsOverlay.setMaxWidth(Pane.USE_PREF_SIZE);
+        labelsOverlay.setMaxHeight(Pane.USE_PREF_SIZE);
+        
+        // Thay thế creditsChart bằng StackPane chứa chart + overlay
+        javafx.scene.Parent parent = creditsChart.getParent();
+        if (parent instanceof VBox) {
+            VBox vbox = (VBox) parent;
+            int index = vbox.getChildren().indexOf(creditsChart);
+            if (index >= 0) {
+                vbox.getChildren().remove(creditsChart);
+                
+                // Tạo StackPane chứa chart và overlay
+                StackPane stackPane = new StackPane(creditsChart, labelsOverlay);
+                stackPane.setPrefHeight(creditsChart.getPrefHeight());
+                vbox.getChildren().add(index, stackPane);
+                VBox.setVgrow(stackPane, javafx.scene.layout.Priority.ALWAYS);
+            }
+        }
     }
 
     /**
@@ -224,17 +263,24 @@ public class DashboardCreditController {
     }
 
     private void addLabelsToChart(Map<String, int[]> creditsData) {
+        System.out.println("addLabelsToChart called with " + creditsData.size() + " bars");
+        
         // Clear old labels
-        creditsChart.getChildren().removeIf(node -> node instanceof Label);
+        labelsOverlay.getChildren().clear();
         
         // Tìm plot area
         javafx.scene.Node plotArea = creditsChart.lookup(".chart-plot-background");
-        if (plotArea == null) return;
+        if (plotArea == null) {
+            System.out.println("plotArea is null!");
+            return;
+        }
 
-        double plotX = plotArea.getBoundsInLocal().getMinX();
-        double plotY = plotArea.getBoundsInLocal().getMinY();
-        double plotWidth = plotArea.getBoundsInLocal().getWidth();
-        double plotHeight = plotArea.getBoundsInLocal().getHeight();
+        double plotX = plotArea.getBoundsInParent().getMinX() - creditsChart.getBoundsInParent().getMinX();
+        double plotY = plotArea.getBoundsInParent().getMinY() - creditsChart.getBoundsInParent().getMinY();
+        double plotWidth = plotArea.getBoundsInParent().getWidth();
+        double plotHeight = plotArea.getBoundsInParent().getHeight();
+        
+        System.out.println("Plot area (relative): x=" + plotX + " y=" + plotY + " w=" + plotWidth + " h=" + plotHeight);
 
         NumberAxis yAxis = creditsYAxis;
         double yMax = yAxis.getUpperBound();
@@ -253,6 +299,7 @@ public class DashboardCreditController {
             int total = newCredits + repeatCredits;
 
             double barCenterX = plotX + barIndex * barWidth + barWidth / 2;
+            System.out.println("Bar " + barIndex + ": new=" + newCredits + " repeat=" + repeatCredits + " total=" + total);
 
             // Label tín chỉ tích lũy thêm (xanh lá)
             if (newCredits > 0) {
@@ -260,10 +307,10 @@ public class DashboardCreditController {
                 newLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;");
                 newLabel.setAlignment(Pos.CENTER);
                 double yNewLabel = yBottom - (newCredits * 0.5 * pixelsPerUnit);
-                creditsChart.getChildren().add(newLabel);
-                // Dùng TranslateX/Y để đặt vị trí
-                newLabel.setTranslateX(barCenterX - 20);
-                newLabel.setTranslateY(yNewLabel - 10);
+                newLabel.setLayoutX(barCenterX - 20);
+                newLabel.setLayoutY(yNewLabel - 10);
+                labelsOverlay.getChildren().add(newLabel);
+                System.out.println("  Added new label at x=" + barCenterX + " y=" + yNewLabel);
             }
 
             // Label tín chỉ học cải thiện (vàng)
@@ -272,9 +319,10 @@ public class DashboardCreditController {
                 repeatLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;");
                 repeatLabel.setAlignment(Pos.CENTER);
                 double yRepeatLabel = yBottom - ((newCredits + repeatCredits * 0.5) * pixelsPerUnit);
-                creditsChart.getChildren().add(repeatLabel);
-                repeatLabel.setTranslateX(barCenterX - 20);
-                repeatLabel.setTranslateY(yRepeatLabel - 10);
+                repeatLabel.setLayoutX(barCenterX - 20);
+                repeatLabel.setLayoutY(yRepeatLabel - 10);
+                labelsOverlay.getChildren().add(repeatLabel);
+                System.out.println("  Added repeat label at x=" + barCenterX + " y=" + yRepeatLabel);
             }
 
             // Total label (xanh dương box)
@@ -291,9 +339,10 @@ public class DashboardCreditController {
                     """);
                 totalLabel.setAlignment(Pos.CENTER);
                 double yTotalLabel = yBottom - (total * pixelsPerUnit) - 20;
-                creditsChart.getChildren().add(totalLabel);
-                totalLabel.setTranslateX(barCenterX - 20);
-                totalLabel.setTranslateY(yTotalLabel);
+                totalLabel.setLayoutX(barCenterX - 20);
+                totalLabel.setLayoutY(yTotalLabel);
+                labelsOverlay.getChildren().add(totalLabel);
+                System.out.println("  Added total label at x=" + barCenterX + " y=" + yTotalLabel);
             }
 
             barIndex++;
