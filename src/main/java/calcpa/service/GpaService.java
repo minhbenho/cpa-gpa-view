@@ -12,6 +12,11 @@ public class GpaService {
         return !needToCalGrade.contains(grade);
     }
 
+    private static boolean isPassedGrade(String grade) {
+        if (isIgnoredGrade(grade)) return false;
+        return toGrade4(grade) > 0.0;
+    }
+
     private static double toGrade4(String grade) {
         switch (grade) {
             case "A+","A":  return 4.0;
@@ -86,6 +91,48 @@ public class GpaService {
         for (String semester : grouped.keySet()) {
             if (selectedSemesters.contains(semester)) {
                 result.put(semester, calcGpa(grouped.get(semester)));
+            }
+        }
+
+        return result;
+    }
+
+    // =========================================================
+    // Tín chỉ tích lũy theo kỳ (tính đến kỳ được chọn)
+    // Logic: mỗi môn chỉ tính 1 lần; nếu học cải thiện thì lấy điểm cao nhất.
+    // Chỉ cộng tín chỉ nếu điểm cao nhất > F.
+    // =========================================================
+    public static Map<String, Integer> calcCumulativeCreditsBySemester(
+            Map<String, List<Course>> grouped,
+            Set<String> selectedSemesters
+    ) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        Map<String, Course> bestByCode = new HashMap<>();
+
+        for (String semester : grouped.keySet()) {
+            List<Course> list = grouped.getOrDefault(semester, List.of());
+            for (Course c : list) {
+                if (isIgnoredGrade(c.getGrade())) continue;
+                String code = c.getCode();
+                if (code == null || code.isBlank()) continue;
+                if (!bestByCode.containsKey(code)) {
+                    bestByCode.put(code, c);
+                } else {
+                    Course old = bestByCode.get(code);
+                    double oldGrade4 = toGrade4(old.getGrade());
+                    double newGrade4 = toGrade4(c.getGrade());
+                    if (newGrade4 > oldGrade4) bestByCode.put(code, c);
+                }
+            }
+
+            if (selectedSemesters.contains(semester)) {
+                int cumulativeCredits = 0;
+                for (Course best : bestByCode.values()) {
+                    if (isPassedGrade(best.getGrade())) {
+                        cumulativeCredits += best.getCredits();
+                    }
+                }
+                result.put(semester, cumulativeCredits);
             }
         }
 

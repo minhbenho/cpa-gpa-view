@@ -2,6 +2,7 @@
 
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.StackedBarChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -20,15 +21,6 @@
         <!-- CENTER -->
         <center>
             <VBox maxHeight="Infinity" maxWidth="Infinity" spacing="10" BorderPane.alignment="CENTER">
-                <!-- Biểu đồ số tín chỉ học trong kỳ -->
-                <LineChart fx:id="creditsChart" animated="false" prefHeight="297.0" prefWidth="760">
-                    <xAxis>
-                        <CategoryAxis fx:id="creditsXAxis"/>
-                    </xAxis>
-                    <yAxis>
-                        <NumberAxis fx:id="creditsYAxis" label="Số tín chỉ" />
-                    </yAxis>
-                </LineChart>
 
                 <!-- Biểu đồ tín chỉ tích lũy đến kỳ -->
                 <LineChart fx:id="creditsCumChart" animated="false" prefHeight="297.0" prefWidth="760">
@@ -39,6 +31,15 @@
                         <NumberAxis fx:id="creditsCumYAxis" label="Tín chỉ tích lũy" />
                     </yAxis>
                 </LineChart>
+                <!-- Biểu đồ số tín chỉ học trong kỳ -->
+                <StackedBarChart fx:id="creditsChart" animated="false" prefHeight="297.0" prefWidth="760">
+                    <xAxis>
+                        <CategoryAxis fx:id="creditsXAxis" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="creditsYAxis" label="Số tín chỉ" />
+                    </yAxis>
+                </StackedBarChart>
             </VBox>
         </center>
 

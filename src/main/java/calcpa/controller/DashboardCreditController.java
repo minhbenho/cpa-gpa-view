@@ -3,20 +3,26 @@ package calcpa.controller;
 import calcpa.model.Course;
 import calcpa.service.CourseService;
 import calcpa.service.GpaService;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -24,7 +30,7 @@ import java.util.prefs.Preferences;
 public class DashboardCreditController {
 
     @FXML private MenuButton semesterMenuButton;
-    @FXML private LineChart<String, Number> creditsChart;
+    @FXML private StackedBarChart<String, Number> creditsChart;
     @FXML private CategoryAxis creditsXAxis;
     @FXML private NumberAxis creditsYAxis;
     @FXML private LineChart<String, Number> creditsCumChart;
@@ -102,16 +108,14 @@ public class DashboardCreditController {
         Collections.sort(semesters);
         creditsXAxis.setCategories(FXCollections.observableArrayList(semesters));
 
-        XYChart.Series<String, Number> seriesTotal = new XYChart.Series<>();
-        seriesTotal.setName("Tổng số tín chỉ");
-
         XYChart.Series<String, Number> seriesNew = new XYChart.Series<>();
-        seriesNew.setName("Số tín chỉ học trong kỳ");
+        seriesNew.setName("Tín chỉ tích lũy thêm");
 
         XYChart.Series<String, Number> seriesRepeat = new XYChart.Series<>();
-        seriesRepeat.setName("Số tín chỉ học cải thiện");
+        seriesRepeat.setName("Tín chỉ học cải thiện");
 
         Set<String> seenCodes = new HashSet<>();
+        Map<String, int[]> creditsData = new LinkedHashMap<>(); // sem -> [newCredits, repeatCredits]
 
         for (String sem : semesters) {
             List<Course> list = groupedCourses.getOrDefault(sem, List.of());
@@ -129,27 +133,29 @@ public class DashboardCreditController {
                 }
             }
 
-            int totalCredits = newCredits + repeatCredits;
-
-            seriesNew.getData().add(createPoint(sem, newCredits));
-            seriesRepeat.getData().add(createPoint(sem, repeatCredits));
-            seriesTotal.getData().add(createPoint(sem, totalCredits));
+            creditsData.put(sem, new int[]{newCredits, repeatCredits});
+            seriesNew.getData().add(new XYChart.Data<>(sem, newCredits));
+            seriesRepeat.getData().add(new XYChart.Data<>(sem, repeatCredits));
         }
 
-        // add theo thứ tự: tổng -> mới -> cải thiện
-        creditsChart.getData().addAll(seriesTotal, seriesNew, seriesRepeat);
+        // add theo thứ tự: tích lũy thêm (dưới) -> cải thiện (trên)
+        creditsChart.getData().addAll(seriesNew, seriesRepeat);
 
         Platform.runLater(() -> {
             creditsChart.applyCss();
             creditsChart.layout();
 
-            setSeriesColor(seriesTotal, "#1e88e5");   // xanh dương
-            setSeriesColor(seriesNew, "#43a047");     // xanh lá
-            setSeriesColor(seriesRepeat, "#fbc02d");  // vàng
+            setBarSeriesColor(seriesNew, "#43a047");     // xanh lá
+            setBarSeriesColor(seriesRepeat, "#fbc02d");  // vàng
 
-            addTooltips(seriesTotal);
-            addTooltips(seriesNew);
-            addTooltips(seriesRepeat);
+            addBarTooltips(seriesNew);
+            addBarTooltips(seriesRepeat);
+            
+            // Delay thêm labels để bar rendering xong
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
+                    javafx.util.Duration.millis(100));
+            pause.setOnFinished(event -> addLabelsToChart(creditsData));
+            pause.play();
         });
     }
 
@@ -167,21 +173,11 @@ public class DashboardCreditController {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Tín chỉ tích lũy");
 
-        Set<String> seenCodes = new HashSet<>();
-        int cumulativeCredits = 0;
-
+        Map<String, Integer> cumulativeBySemester =
+                GpaService.calcCumulativeCreditsBySemester(groupedCourses, selectedSemesters);
         for (String sem : semesters) {
-            List<Course> list = groupedCourses.getOrDefault(sem, List.of());
-
-            for (Course c : list) {
-                if (c.getCode() == null) continue;
-                if (!seenCodes.contains(c.getCode())) {
-                    cumulativeCredits += c.getCredits();
-                    seenCodes.add(c.getCode());
-                }
-            }
-
-            series.getData().add(createPoint(sem, cumulativeCredits));
+            int credits = cumulativeBySemester.getOrDefault(sem, 0);
+            series.getData().add(createPoint(sem, credits));
         }
 
         creditsCumChart.getData().add(series);
@@ -205,6 +201,102 @@ public class DashboardCreditController {
                 d.getNode().lookup("Label")
                         .setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold;");
             }
+        }
+    }
+
+    private void setBarSeriesColor(XYChart.Series<String, Number> series, String color) {
+        for (XYChart.Data<String, Number> d : series.getData()) {
+            if (d.getNode() != null) {
+                d.getNode().setStyle("-fx-bar-fill: " + color + ";");
+            }
+        }
+    }
+
+    private void addBarTooltips(XYChart.Series<String, Number> series) {
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            if (data.getNode() != null) {
+                Tooltip tooltip = new Tooltip(
+                        String.format("%.0f", data.getYValue().doubleValue())
+                );
+                Tooltip.install(data.getNode(), tooltip);
+            }
+        }
+    }
+
+    private void addLabelsToChart(Map<String, int[]> creditsData) {
+        // Clear old labels
+        creditsChart.getChildren().removeIf(node -> node instanceof Label);
+        
+        // Tìm plot area
+        javafx.scene.Node plotArea = creditsChart.lookup(".chart-plot-background");
+        if (plotArea == null) return;
+
+        double plotX = plotArea.getBoundsInLocal().getMinX();
+        double plotY = plotArea.getBoundsInLocal().getMinY();
+        double plotWidth = plotArea.getBoundsInLocal().getWidth();
+        double plotHeight = plotArea.getBoundsInLocal().getHeight();
+
+        NumberAxis yAxis = creditsYAxis;
+        double yMax = yAxis.getUpperBound();
+        double yMin = yAxis.getLowerBound();
+        double yRange = yMax - yMin;
+        double pixelsPerUnit = plotHeight / yRange;
+        double yBottom = plotY + plotHeight;
+
+        double barWidth = plotWidth / creditsData.size();
+        int barIndex = 0;
+
+        for (String sem : creditsData.keySet()) {
+            int[] credits = creditsData.get(sem);
+            int newCredits = credits[0];
+            int repeatCredits = credits[1];
+            int total = newCredits + repeatCredits;
+
+            double barCenterX = plotX + barIndex * barWidth + barWidth / 2;
+
+            // Label tín chỉ tích lũy thêm (xanh lá)
+            if (newCredits > 0) {
+                Label newLabel = new Label(String.valueOf(newCredits));
+                newLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;");
+                newLabel.setAlignment(Pos.CENTER);
+                double yNewLabel = yBottom - (newCredits * 0.5 * pixelsPerUnit);
+                creditsChart.getChildren().add(newLabel);
+                // Dùng TranslateX/Y để đặt vị trí
+                newLabel.setTranslateX(barCenterX - 20);
+                newLabel.setTranslateY(yNewLabel - 10);
+            }
+
+            // Label tín chỉ học cải thiện (vàng)
+            if (repeatCredits > 0) {
+                Label repeatLabel = new Label(String.valueOf(repeatCredits));
+                repeatLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;");
+                repeatLabel.setAlignment(Pos.CENTER);
+                double yRepeatLabel = yBottom - ((newCredits + repeatCredits * 0.5) * pixelsPerUnit);
+                creditsChart.getChildren().add(repeatLabel);
+                repeatLabel.setTranslateX(barCenterX - 20);
+                repeatLabel.setTranslateY(yRepeatLabel - 10);
+            }
+
+            // Total label (xanh dương box)
+            if (total > 0) {
+                Label totalLabel = new Label(String.valueOf(total));
+                totalLabel.setStyle("""
+                        -fx-text-fill: white;
+                        -fx-font-weight: bold;
+                        -fx-font-size: 10;
+                        -fx-background-color: #1e88e5;
+                        -fx-padding: 2 5;
+                        -fx-border-radius: 2;
+                        -fx-background-radius: 2;
+                    """);
+                totalLabel.setAlignment(Pos.CENTER);
+                double yTotalLabel = yBottom - (total * pixelsPerUnit) - 20;
+                creditsChart.getChildren().add(totalLabel);
+                totalLabel.setTranslateX(barCenterX - 20);
+                totalLabel.setTranslateY(yTotalLabel);
+            }
+
+            barIndex++;
         }
     }
 
@@ -257,7 +349,10 @@ public class DashboardCreditController {
     }
 
     private void setupCumulativeCreditsYAxis() {
-        creditsCumYAxis.setAutoRanging(true);
+        creditsCumYAxis.setAutoRanging(false);
+        creditsCumYAxis.setUpperBound(160);
+        creditsCumYAxis.setLowerBound(0);
+        creditsCumYAxis.setTickUnit(20);    
         creditsCumYAxis.setLabel("Tín chỉ tích lũy");
     }
 }
