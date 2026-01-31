@@ -188,9 +188,9 @@ public class DashboardController {
             creditsChart.applyCss();
             creditsChart.layout();
 
-            setSeriesColor(seriesTotal, "#1e88e5");   // xanh dương
-            setSeriesColor(seriesNew, "#43a047");     // xanh lá
-            setSeriesColor(seriesRepeat, "#fbc02d");  // vàng
+            setSeriesColor(seriesTotal, "#1e88e5");   // xanh dương 1e88e5
+            setSeriesColor(seriesNew, "#43a047");     // xanh lá 43a047
+            setSeriesColor(seriesRepeat, "#fbc02d");  // vàng fbc02d
 
             addTooltips(seriesTotal);
             addTooltips(seriesNew);
@@ -254,7 +254,7 @@ public class DashboardController {
         creditsYAxis.setAutoRanging(false);
         creditsYAxis.setLowerBound(0);
         creditsYAxis.setUpperBound(30);
-        creditsYAxis.setTickUnit(0.5);
+        creditsYAxis.setTickUnit(5);
         creditsYAxis.setMinorTickCount(0);
     }
 

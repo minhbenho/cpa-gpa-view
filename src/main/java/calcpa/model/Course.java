@@ -11,6 +11,7 @@ public class Course {
     private final IntegerProperty credits = new SimpleIntegerProperty();
     private final StringProperty grade = new SimpleStringProperty();
     private final StringProperty semester = new SimpleStringProperty();
+    private final IntegerProperty displayOrder = new SimpleIntegerProperty(0);
 
     public Course(String code, String name, int credits, String grade, String semester) {
         this.code.set(code);
@@ -70,6 +71,18 @@ public class Course {
 
     public void setSemester(String semester) {
         this.semester.set(semester);
+    }
+
+    public int getDisplayOrder() {
+        return displayOrder.get();
+    }
+
+    public void setDisplayOrder(int displayOrder) {
+        this.displayOrder.set(displayOrder);
+    }
+
+    public IntegerProperty displayOrderProperty() {
+        return displayOrder;
     }
 
     public String toCsvLine() {

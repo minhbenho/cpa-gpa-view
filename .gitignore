@@ -25,7 +25,6 @@ target/
 ### khong push data
 data.csv
 src/main/resources/data.csv
-src/main/resources/data.xlsx
 
 ### NetBeans ###
 /nbproject/private/

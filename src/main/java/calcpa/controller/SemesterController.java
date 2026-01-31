@@ -3,11 +3,16 @@ package calcpa.controller;
 import calcpa.model.Course;
 import calcpa.service.CourseService;
 import calcpa.service.GpaService;
+import calcpa.service.CourseOrderService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 
 import java.util.*;
@@ -37,7 +42,9 @@ public class SemesterController {
     @FXML
     public void initialize() {
         setupTableColumns();
+        setupDragAndDrop();
         semesterCombo.setOnAction(e -> onSemesterSelected());
+        CourseOrderService.loadOrder(); // Tải thứ tự tùy chỉnh
         reloadData();
     }
 
@@ -236,6 +243,72 @@ public class SemesterController {
     }
 
     /**
+     * Thiết lập chức năng kéo thả để sắp xếp thứ tự các hàng
+     */
+    private void setupDragAndDrop() {
+        // Sử dụng DataFormat tùy chỉnh để truyền dữ liệu
+        DataFormat COURSE_DATA_FORMAT = new DataFormat("application/x-java-serialized-object");
+        
+        courseTable.setRowFactory(tv -> {
+            TableRow<Course> row = new TableRow<>();
+            
+            // Thiết lập sự kiện kéo (drag)
+            row.setOnDragDetected(event -> {
+                if (!row.isEmpty()) {
+                    Integer index = row.getIndex();
+                    Dragboard db = row.startDragAndDrop(TransferMode.MOVE);
+                    db.setDragView(row.snapshot(null, null));
+                    ClipboardContent cc = new ClipboardContent();
+                    cc.put(COURSE_DATA_FORMAT, index);
+                    db.setContent(cc);
+                    event.consume();
+                }
+            });
+            
+            // Thiết lập sự kiện khi kéo qua (drag over)
+            row.setOnDragOver(event -> {
+                Dragboard db = event.getDragboard();
+                if (db.hasContent(COURSE_DATA_FORMAT)) {
+                    if (row.getIndex() != ((Integer) db.getContent(COURSE_DATA_FORMAT)).intValue()) {
+                        event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                        event.consume();
+                    }
+                }
+            });
+            
+            // Thiết lập sự kiện khi thả (drop)
+            row.setOnDragDropped(event -> {
+                Dragboard db = event.getDragboard();
+                if (db.hasContent(COURSE_DATA_FORMAT)) {
+                    int draggedIndex = (Integer) db.getContent(COURSE_DATA_FORMAT);
+                    Course draggedCourse = courseTable.getItems().remove(draggedIndex);
+                    
+                    int dropIndex;
+                    if (row.isEmpty()) {
+                        dropIndex = courseTable.getItems().size();
+                    } else {
+                        dropIndex = row.getIndex();
+                    }
+                    
+                    courseTable.getItems().add(dropIndex, draggedCourse);
+                    
+                    // Lưu thứ tự mới
+                    String selectedSemester = semesterCombo.getValue();
+                    if (selectedSemester != null) {
+                        CourseOrderService.updateOrder(new ArrayList<>(courseTable.getItems()), selectedSemester);
+                    }
+                    
+                    event.setDropCompleted(true);
+                    courseTable.getSelectionModel().select(dropIndex);
+                    event.consume();
+                }
+            });
+            
+            return row;
+        });
+    }
+
+    /**
      * Ghi lại dữ liệu ra CSV và yêu cầu MainController reload toàn bộ app
      * (Dashboard, Semester, ...), tránh việc người dùng phải bấm Reload tay.
      */
@@ -267,7 +340,11 @@ public class SemesterController {
         preferences.put(SELECTED_SEMESTER_KEY, selectedSemester);
 
         // Hiển thị danh sách môn học của kỳ được chọn
-        List<Course> courses = groupedCourses.get(selectedSemester);
+        List<Course> courses = new ArrayList<>(groupedCourses.get(selectedSemester));
+        
+        // Áp dụng thứ tự tùy chỉnh
+        CourseOrderService.applyOrder(courses, selectedSemester);
+        
         courseList.setAll(courses);
         
         // Hiển thị nút Thêm môn
@@ -336,8 +413,15 @@ public class SemesterController {
         
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+                String selectedSemester = semesterCombo.getValue();
                 CourseService.removeCourse(course);
                 courseList.remove(course);
+                
+                // Xóa thứ tự tùy chỉnh của môn này
+                if (selectedSemester != null) {
+                    CourseOrderService.removeOrder(selectedSemester, course.getCode());
+                }
+                
                 persistAndReload();
             }
         });
