@@ -20,12 +20,14 @@ public class MainController {
 
     // Root nodes của từng trang
     @FXML private Node pageDashboard;
+    @FXML private Node pageDashboardCredit;
     @FXML private Node pageSemester;
     @FXML private Node pageSubject;
     @FXML private Node pageSetting;
 
     // Controller của các trang (theo pattern fx:include + fx:id)
     @FXML private DashboardController pageDashboardController;
+    @FXML private DashboardCreditController pageDashboardCreditController;
     @FXML private SemesterController pageSemesterController;
     @FXML private SubjectController pageSubjectController;
     @FXML private SettingController pageSettingController;
@@ -38,6 +40,7 @@ public class MainController {
 
     private void hideAllPages() {
         hide(pageDashboard);
+        hide(pageDashboardCredit);
         hide(pageSemester);
         hide(pageSubject);
         hide(pageSetting);
@@ -59,6 +62,12 @@ public class MainController {
     private void showDashboard() {
         hideAllPages();
         showPage(pageDashboard);
+    }
+
+    @FXML
+    private void showDashboardCredit() {
+        hideAllPages();
+        showPage(pageDashboardCredit);
     }
 
     @FXML
@@ -92,6 +101,9 @@ public class MainController {
         // Báo từng trang tự reload UI nếu có controller
         if (pageDashboardController != null) {
             pageDashboardController.reloadData();
+        }
+        if (pageDashboardCreditController != null) {
+            pageDashboardCreditController.reloadData();
         }
         if (pageSemesterController != null) {
             pageSemesterController.reloadData();

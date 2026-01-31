@@ -3,13 +3,12 @@
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.chart.StackedBarChart?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.DashboardController">
+<AnchorPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.DashboardCreditController">
 
     <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
@@ -17,23 +16,27 @@
         <top>
             <MenuButton fx:id="semesterMenuButton" text="Chọn kỳ" BorderPane.alignment="CENTER" />
         </top>
+
         <!-- CENTER -->
         <center>
             <VBox maxHeight="Infinity" maxWidth="Infinity" spacing="10" BorderPane.alignment="CENTER">
-                <LineChart fx:id="gpaChart" createSymbols="false" layoutX="20" layoutY="80" prefHeight="297.0" prefWidth="760">
+                <!-- Biểu đồ số tín chỉ học trong kỳ -->
+                <LineChart fx:id="creditsChart" animated="false" prefHeight="297.0" prefWidth="760">
                     <xAxis>
-                        <CategoryAxis fx:id="gpaXAxis" />
+                        <CategoryAxis fx:id="creditsXAxis"/>
                     </xAxis>
                     <yAxis>
-                        <NumberAxis fx:id="gpaYAxis" label="GPA" lowerBound="0" upperBound="4.0" />
+                        <NumberAxis fx:id="creditsYAxis" label="Số tín chỉ" />
                     </yAxis>
                 </LineChart>
-                <LineChart fx:id="cpaChart" createSymbols="false" layoutX="20" layoutY="80" prefHeight="297.0" prefWidth="760">
+
+                <!-- Biểu đồ tín chỉ tích lũy đến kỳ -->
+                <LineChart fx:id="creditsCumChart" animated="false" prefHeight="297.0" prefWidth="760">
                     <xAxis>
-                        <CategoryAxis fx:id="cpaXAxis" />
+                        <CategoryAxis fx:id="creditsCumXAxis" />
                     </xAxis>
                     <yAxis>
-                        <NumberAxis fx:id="cpaYAxis" label="CPA" lowerBound="0" upperBound="4.0" />
+                        <NumberAxis fx:id="creditsCumYAxis" label="Tín chỉ tích lũy" />
                     </yAxis>
                 </LineChart>
             </VBox>

@@ -28,6 +28,13 @@
                         prefWidth="120.0"
                         text="Dashboard" />
 
+                <Button fx:id="btnDashboardCredit"
+                        mnemonicParsing="false"
+                        onAction="#showDashboardCredit"
+                        prefHeight="40.0"
+                        prefWidth="120.0"
+                        text="Dashboard Credit" />
+
                 <Button fx:id="btnSemester"
                         mnemonicParsing="false"
                         onAction="#showSemester"
@@ -63,6 +70,7 @@
     <center>
         <StackPane>
             <fx:include fx:id="pageDashboard" source="dashboard.fxml"/>
+            <fx:include fx:id="pageDashboardCredit" source="dashboard-credit.fxml"/>
             <fx:include fx:id="pageSemester" source="semester.fxml"/>
             <fx:include fx:id="pageSubject" source="subject.fxml"/>
             <fx:include fx:id="pageSetting" source="setting.fxml"/>

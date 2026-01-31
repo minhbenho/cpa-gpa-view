@@ -27,13 +27,6 @@ public class DashboardController {
     @FXML private CategoryAxis cpaXAxis;
     @FXML private NumberAxis gpaYAxis;
     @FXML private NumberAxis cpaYAxis;
-    @FXML private LineChart<String, Number> creditsChart;
-    @FXML private CategoryAxis creditsXAxis;
-    @FXML private NumberAxis creditsYAxis;
-    @FXML private CategoryAxis creditsBarXAxis;
-    @FXML private NumberAxis creditsBarYAxis;
-    @FXML private CategoryAxis creditsCumXAxis;
-    @FXML private NumberAxis creditsCumYAxis;
     private final Set<String> selectedSemesters = new LinkedHashSet<>();
 
     private void saveSelectedSemesters() {
@@ -68,7 +61,6 @@ public class DashboardController {
                 saveSelectedSemesters();   // ⭐ dòng mấu chốt
                 updateGpaChart();
                 updateCpaChart();
-                updateCreditsCharts();
             });
             CustomMenuItem menuItem = new CustomMenuItem(checkBox);
             menuItem.setHideOnClick(false); // ✅ HỢP LỆ 100%
@@ -118,7 +110,6 @@ public class DashboardController {
     @FXML public void initialize() {
         setupYAxis(gpaYAxis);
         setupYAxis(cpaYAxis);
-        setupCreditsYAxis();
         gpaChart.setAnimated(false);
         cpaChart.setAnimated(false);
         reloadData();
@@ -136,82 +127,9 @@ public class DashboardController {
         initSemesterMenu();
         updateGpaChart();
         updateCpaChart();
-        updateCreditsCharts();
     }
 
-    private void updateCreditsCharts() {
-        creditsChart.getData().clear();
-        if (groupedCourses == null || selectedSemesters.isEmpty()) return;
 
-        List<String> semesters = new ArrayList<>(selectedSemesters);
-        Collections.sort(semesters);
-        creditsXAxis.setCategories(FXCollections.observableArrayList(semesters));
-
-        XYChart.Series<String, Number> seriesTotal = new XYChart.Series<>();
-        seriesTotal.setName("Tổng số tín chỉ");
-
-        XYChart.Series<String, Number> seriesNew = new XYChart.Series<>();
-        seriesNew.setName("Số tín chỉ học trong kỳ");
-
-        XYChart.Series<String, Number> seriesRepeat = new XYChart.Series<>();
-        seriesRepeat.setName("Số tín chỉ học cải thiện");
-
-        Set<String> seenCodes = new HashSet<>();
-
-        for (String sem : semesters) {
-            List<Course> list = groupedCourses.getOrDefault(sem, List.of());
-
-            int newCredits = 0;
-            int repeatCredits = 0;
-
-            for (Course c : list) {
-                if (c.getCode() == null) continue;
-                if (seenCodes.contains(c.getCode())) {
-                    repeatCredits += c.getCredits();
-                } else {
-                    newCredits += c.getCredits();
-                    seenCodes.add(c.getCode());
-                }
-            }
-
-            int totalCredits = newCredits + repeatCredits;
-
-            seriesNew.getData().add(createPoint(sem, newCredits));
-            seriesRepeat.getData().add(createPoint(sem, repeatCredits));
-            seriesTotal.getData().add(createPoint(sem, totalCredits));
-        }
-
-        // add theo thứ tự: tổng -> mới -> cải thiện
-        creditsChart.getData().addAll(seriesTotal, seriesNew, seriesRepeat);
-
-        Platform.runLater(() -> {
-            creditsChart.applyCss();
-            creditsChart.layout();
-
-            setSeriesColor(seriesTotal, "#1e88e5");   // xanh dương 1e88e5
-            setSeriesColor(seriesNew, "#43a047");     // xanh lá 43a047
-            setSeriesColor(seriesRepeat, "#fbc02d");  // vàng fbc02d
-
-            addTooltips(seriesTotal);
-            addTooltips(seriesNew);
-            addTooltips(seriesRepeat);
-        });
-    }
-
-    private void setSeriesColor(XYChart.Series<String, Number> series, String color) {
-        if (series.getNode() != null) {
-            series.getNode().lookup(".chart-series-line")
-                    .setStyle("-fx-stroke: " + color + ";");
-        }
-        for (XYChart.Data<String, Number> d : series.getData()) {
-            if (d.getNode() != null) {
-                d.getNode().lookup("Circle")
-                        .setStyle("-fx-stroke: " + color + "; -fx-fill: white;");
-                d.getNode().lookup("Label")
-                        .setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold;");
-            }
-        }
-    }
 
     private void setupYAxis(NumberAxis axis) {
         axis.setAutoRanging(false);
@@ -250,12 +168,5 @@ public class DashboardController {
         return data;
     }
 
-    private void setupCreditsYAxis() {
-        creditsYAxis.setAutoRanging(false);
-        creditsYAxis.setLowerBound(0);
-        creditsYAxis.setUpperBound(30);
-        creditsYAxis.setTickUnit(5);
-        creditsYAxis.setMinorTickCount(0);
-    }
-
 }
+
