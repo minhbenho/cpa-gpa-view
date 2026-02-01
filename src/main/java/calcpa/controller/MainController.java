@@ -108,7 +108,10 @@ public class MainController {
         if (pageSemesterController != null) {
             pageSemesterController.reloadData();
         }
-        // Subject / Setting hiện chưa dùng data nên tạm thời không cần làm gì
+        if (pageSubjectController != null) {
+            pageSubjectController.reloadData();
+        }
+        // Setting hiện chưa dùng data nên tạm thời không cần làm gì
 //        Alert alert = new Alert(Alert.AlertType.INFORMATION);
 //        alert.setTitle("Thông báo");
 //        alert.setHeaderText(null);

@@ -1,11 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.SubjectController">
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calcpa.controller.SubjectController">
-    <children>
-        <Label layoutX="188.0" layoutY="102.0" prefHeight="159.0" prefWidth="199.0" text="Chức năng sẽ được phát triển sau" />
-    </children>
-</AnchorPane>
+    <top>
+        <VBox spacing="10" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+
+            <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Bộ lọc môn học" />
+
+            <VBox spacing="6">
+                <Label text="Số tín chỉ:" />
+                <FlowPane fx:id="creditsPane" hgap="10" prefWrapLength="700" vgap="6" />
+            </VBox>
+
+            <VBox spacing="6">
+                <Label text="Điểm:" />
+                <FlowPane fx:id="gradesPane" hgap="10" prefWrapLength="700" vgap="6" />
+            </VBox>
+
+            <VBox spacing="6">
+                <Label text="Kỳ học:" />
+                  <FlowPane fx:id="semestersPane" hgap="10" prefWrapLength="700" vgap="6" />
+            </VBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Button fx:id="btnSearch" onAction="#onSearch" text="Tìm" />
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="5">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+
+            <TableView fx:id="courseTable">
+                <columns>
+                    <TableColumn fx:id="colCode" prefWidth="120" text="Mã môn" />
+                    <TableColumn fx:id="colName" prefWidth="240" text="Tên môn" />
+                    <TableColumn fx:id="colCredits" prefWidth="100" text="Số tín chỉ" />
+                    <TableColumn fx:id="colGrade" prefWidth="80" text="Điểm" />
+                    <TableColumn fx:id="colSemester" prefWidth="120" text="Kỳ" />
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+
+</BorderPane>
