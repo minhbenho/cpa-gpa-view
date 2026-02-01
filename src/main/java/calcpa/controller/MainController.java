@@ -109,10 +109,10 @@ public class MainController {
             pageSemesterController.reloadData();
         }
         // Subject / Setting hiện chưa dùng data nên tạm thời không cần làm gì
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thông báo");
-        alert.setHeaderText(null);
-        alert.setContentText("Đã reload");
-        alert.showAndWait();
+//        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+//        alert.setTitle("Thông báo");
+//        alert.setHeaderText(null);
+//        alert.setContentText("Đã reload");
+//        alert.showAndWait();
     }
 }

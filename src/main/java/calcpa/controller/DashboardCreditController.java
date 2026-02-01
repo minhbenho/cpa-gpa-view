@@ -321,7 +321,7 @@ public class DashboardCreditController {
     private void setupCreditsPerSemesterYAxis() {
         creditsPerSemesterYAxis.setAutoRanging(false);
         creditsPerSemesterYAxis.setLowerBound(0);
-        creditsPerSemesterYAxis.setUpperBound(30);
+        creditsPerSemesterYAxis.setUpperBound(35);
         creditsPerSemesterYAxis.setTickUnit(5);
         creditsPerSemesterYAxis.setMinorTickCount(0);
         creditsPerSemesterYAxis.setLabel("Số tín chỉ");

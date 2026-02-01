@@ -110,6 +110,7 @@ public class DashboardController {
     @FXML public void initialize() {
         setupYAxis(gpaYAxis);
         setupYAxis(cpaYAxis);
+        cpaYAxis.setLowerBound(3.2);
         gpaChart.setAnimated(false);
         cpaChart.setAnimated(false);
         reloadData();
@@ -133,7 +134,7 @@ public class DashboardController {
 
     private void setupYAxis(NumberAxis axis) {
         axis.setAutoRanging(false);
-        axis.setLowerBound(2.8);
+        axis.setLowerBound(1.2);
         axis.setUpperBound(4.4);
         axis.setTickUnit(0.4);
         axis.setMinorTickCount(0);
