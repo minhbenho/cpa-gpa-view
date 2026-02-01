@@ -257,7 +257,11 @@ public class DashboardCreditController {
         Platform.runLater(() -> {
             creditsPerSemesterChart.applyCss();
             creditsPerSemesterChart.layout();
-            setSeriesColor(series, "#1e88e5"); // xanh dương
+            // Chỉ style cho line, không động vào các node tùy chỉnh
+            if (series.getNode() != null) {
+                series.getNode().lookup(".chart-series-line")
+                        .setStyle("-fx-stroke: #ff6f00; -fx-stroke-width: 2px;");
+            }
             addTooltips(series);
         });
     }
